@@ -1,0 +1,104 @@
+feature,feature_group,source_column,calculation_method,uses_current_data,uses_past_data,uses_future_data,uses_route_information,uses_trip_end_information,uses_target,causal_status,reason
+current_soc_pct,common,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+current_altitude_m,common,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+current_gradient_pct,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+past_1km_gradient_pct,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_gain_100m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_gain_500m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_gain_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_loss_100m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_loss_500m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_loss_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+net_elevation_change_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_gradient_500m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_gradient_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+gradient_std_500m,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+gradient_std_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_uphill_gradient,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_downhill_gradient,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+terrain_variability,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+hillyness_score,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+uphill_fraction_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+downhill_fraction_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+flat_fraction_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+terrain_transition_count_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+gradient_direction_changes_1km,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_gain_rate,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+elevation_loss_rate,common,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+distance_since_trip_start_km,common,distance_km,d - d[0]  (first row only),0,1,0,0,0,0,CAUSAL,uses only the trip start (first row); no future/total info
+time_since_trip_start_min,common,timestamp,(time_s - origin)/60  (first row only),0,1,0,0,0,0,CAUSAL,uses only the trip start time; no future/total info
+trip_distance_so_far_km,common,distance_km,d - d[0]  (first row only),0,1,0,0,0,0,CAUSAL,uses only the trip start (first row); no future/total info
+trip_elapsed_time_min,common,timestamp,(time_s - origin)/60  (first row only),0,1,0,0,0,0,CAUSAL,uses only the trip start time; no future/total info
+hour_of_day,common,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+day_of_week,common,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+current_speed_kmh,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_speed_500m,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_speed_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_std_500m,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_std_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+min_speed_recent,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_speed_recent,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+high_speed_fraction,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+stopped_fraction,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+stop_count_recent,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_change_recent,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+acceleration_mps2,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_acceleration,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+std_acceleration,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_acceleration,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+min_acceleration,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+motor_power_kw,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+torque_nm,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+motor_rpm,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_motor_power_500m,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_motor_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_motor_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+positive_motor_power_fraction,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+power_variability,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+aux_power_kw,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_aux_power_500m,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_aux_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_aux_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+aux_power_variability,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+aux_energy_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_power_kw,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_regen_power_500m,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_regen_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+max_regen_power_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_event_count_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_duration_estimate,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_energy_recovered_1km,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_fraction_of_driving_time,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_intensity,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+current_temperature_c,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+temperature_recent_mean,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_x_gradient,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_squared,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_x_temperature,telemetry,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+hour_sin,new_p9_p13,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+hour_cos,new_p9_p13,derived,past/current window,1,0,0,0,0,0,CAUSAL,current observation only
+trip_phase,trip_progress,distance_since_trip_start_km (observed total),distance_since_trip_start_km / max(distance_since_trip_start_km),0,0,0,0,1,0,TRIP_END_LEAKAGE,"denominator is the OBSERVED total trip distance, known only after the trip ends; a version normalized by an externally known route length would be conditionally causal"
+next_1km_net_elev_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_1km_gradient_pct,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_1km_gain_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_1km_loss_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_2km_net_elev_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_2km_gradient_pct,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_2km_gain_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_2km_loss_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_net_elev_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_gradient_pct,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_gain_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_loss_m,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_uphill_frac,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_downhill_frac,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+next_5km_flat_frac,lookahead_terrain,altitude_m (static road elevation),"searchsorted(d, d+width,'right')-1; altitude[i:j+1] with j>i",0,0,1,1,0,0,CONDITIONALLY_CAUSAL,reads rows AFTER current index; elevation is static road geography (corr 0.996 across trips of same route) -> valid ONLY if the system knows the planned route/DEM; FUTURE_LEAKAGE for a system without route knowledge
+speed_p10,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_p50,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_p90,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+speed_iqr,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_pos_accel,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+mean_neg_accel,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_share_1km,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+regen_events_per_km,new_p9_p13,derived,past/current window,0,1,0,0,0,0,CAUSAL,computed from past windows (searchsorted distance-width)
+temperature_bucket,new_p9_p13,ambient_temperature_c,past/current window,1,0,0,0,0,0,CAUSAL,"current temperature observation, binned"

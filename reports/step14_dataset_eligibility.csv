@@ -1,0 +1,4 @@
+dataset,vehicle,target_available,required_features_available,route_features_available,energy_target_confidence,training_eligible,reason
+DEVRT,Dacia,TRUE,TRUE,TRUE,HIGH,TRAINING_ELIGIBLE,Complete 102-feature set with verified energy target; route-aware features可从 planned route + DEM
+TUM,VW CUPRA,FALSE,FALSE,FALSE,LOW,BLOCKED,Missing GPS/altitude terrain data and per-timestamp distance; cannot reconstruct 5-km energy target honestly
+JAC,JAC IEV40,FALSE,FALSE,FALSE,LOW,BLOCKED,No verified SOC, unverified VOL/CUR, and current unavailable; cannot construct reliable energy target

@@ -1,0 +1,61 @@
+{
+  "new_features": [
+    "hour_sin",
+    "hour_cos",
+    "is_weekend",
+    "trip_phase",
+    "next_1km_net_elev_m",
+    "next_1km_gradient_pct",
+    "next_1km_gain_m",
+    "next_1km_loss_m",
+    "next_2km_net_elev_m",
+    "next_2km_gradient_pct",
+    "next_2km_gain_m",
+    "next_2km_loss_m",
+    "next_5km_net_elev_m",
+    "next_5km_gradient_pct",
+    "next_5km_gain_m",
+    "next_5km_loss_m",
+    "next_5km_uphill_frac",
+    "next_5km_downhill_frac",
+    "next_5km_flat_frac",
+    "speed_p10",
+    "speed_p50",
+    "speed_p90",
+    "speed_iqr",
+    "mean_pos_accel",
+    "mean_neg_accel",
+    "regen_share_1km",
+    "regen_events_per_km",
+    "temperature_bucket"
+  ],
+  "cv": {
+    "A_common_only": {
+      "n_features": 33,
+      "n": 9098,
+      "mae": 0.05515,
+      "rmse": 0.07119,
+      "r2": 0.3712,
+      "mae_dacia": 0.04537,
+      "mae_nissan": 0.06831
+    },
+    "B_common_plus_telemetry": {
+      "n_features": 77,
+      "n": 9098,
+      "mae": 0.05576,
+      "rmse": 0.07345,
+      "r2": 0.3306,
+      "mae_dacia": 0.04467,
+      "mae_nissan": 0.07067
+    },
+    "C_plus_new_features": {
+      "n_features": 105,
+      "n": 9098,
+      "mae": 0.04036,
+      "rmse": 0.05284,
+      "r2": 0.6536,
+      "mae_dacia": 0.0347,
+      "mae_nissan": 0.04796
+    }
+  }
+}

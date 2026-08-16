@@ -1,0 +1,36 @@
+{
+  "generated_at": "2026-08-16T12:15:19.648356",
+  "existing_modules_reviewed": [
+    "src/inference/predictor.py (legacy trip-level)",
+    "src/inference/range_estimator.py (range + uncertainty band)"
+  ],
+  "checks": {
+    "model_loads": true,
+    "preprocessor_loads": true,
+    "feature_count": 102,
+    "n_features_in_": 102,
+    "feature_count_matches_model": true,
+    "imputer_has_medians": 102,
+    "imputer_finite_medians_ratio": 1.0,
+    "synthetic_prediction": 0.213165,
+    "prediction_is_finite": true,
+    "predict_latency_ms": 40.437,
+    "range_usable_energy_kwh": 28.0,
+    "range_expected_km": 186.667,
+    "range_band": {
+      "usable_energy_kwh": 28.0,
+      "estimated_range_km": 186.66666666666669,
+      "conservative_range_km": 147.3684210526316,
+      "expected_range_km": 186.66666666666669,
+      "optimistic_range_km": 280.0,
+      "low_consumption_kwh_per_km": 0.19,
+      "high_consumption_kwh_per_km": 0.09999999999999999
+    },
+    "range_validation_ok": true,
+    "legacy_predictor_imports": true,
+    "legacy_target": "target_future_energy_kwh_per_km",
+    "step8_marker_exists": true,
+    "step8_test_was_evaluated_once": true
+  },
+  "conclusion": "Existing inference code is sound: frozen model + median imputer load correctly, feature ordering matches the model, missing telemetry is handled by the frozen median imputer, prediction and range estimation are validated. Legacy predictor.py is trip-level (engineering + target); production single-point inference is provided by the new Step 11 service/feature_builder."
+}

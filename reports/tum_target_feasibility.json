@@ -1,0 +1,17 @@
+{
+  "tum_target_status": "BLOCKED",
+  "reason": "The frozen 102-feature model predicts `target_future_energy_kwh_per_km` over the next 5 km. TUM provides: SOC, speed, battery voltage, ambient temperature. Missing: GPS/altitude terrain (41 features), traction-motor features (19 features), per-timestamp distance (12 features). Without GPS/altitude, route-aware next_* features cannot be computed. Without per-timestamp distance, the 5-km energy consumption target cannot be demarcated. TUM cannot serve as an external validation dataset for the frozen 102-feature model.",
+  "features_available": 30,
+  "features_total": 102,
+  "blocked_reasons": [
+    "only 30/102 frozen-model features are reproducible from TUM signals",
+    "missing features are GPS/altitude terrain (route-aware)",
+    "72/102 features unavailable",
+    "per-timestamp travelled_distance unavailable"
+  ],
+  "investigation_method": "PyArrow ParquetFile metadata inspection and row-group iteration (no pandas, no full-load loading)",
+  "target_definition": "target_future_energy_kwh_per_km over the next 5 km",
+  "investigation_conclusion": "TUM TARGET STATUS = BLOCKED. The 5-km ahead energy consumption target requires GPS/altitude for route-aware features and per-timestamp distance for the 5 km window. Neither is available in TUM.",
+  "investigation_date": "2026-08-16",
+  "data_source": "TUM EV UDS dataset (~96M rows, CUP1-CUP5, ID1-ID2)"
+}

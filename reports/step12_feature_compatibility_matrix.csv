@@ -1,0 +1,50 @@
+dataset;concept;source_column/value_id;availability;status;unit;confidence;derivation_method;notes
+DEVRT;speed_kmh;speed;DIRECT;HIGH;km/h;HIGH;—
+TUM;speed_kmh;value_id=4;DIRECT;HIGH;km/h;HIGH;—
+JAC;speed_kmh;SPD;DIRECT;HIGH;km/h;HIGH;—
+DEVRT;battery_capacity_kwh;battery_capacity_kwh;DIRECT;HIGH;kWh;HIGH;—
+DEVRT;soc_pct;soc_pct;DIRECT;HIGH;%;HIGH;—
+DEVRT;battery_voltage_v;battery_voltage_v;DIRECT;HIGH;V;HIGH;—
+TUM;battery_voltage_v;value_id=13;DIRECT;HIGH;V;HIGH;—
+JAC;battery_voltage_v;VOL;UNVERIFIED;LOW;V?;—
+DEVRT;ambient_temperature_c;ambient_temperature_c;DIRECT;HIGH;°C;HIGH;—
+TUM;ambient_temperature_c;value_id=14;DIRECT;HIGH;°C;HIGH;—
+DEVRT;altitude_m;altitude_m;CONDITIONAL;HIGH;m;HIGH;requires route DEM
+TUM;altitude_m;NONE;UNAVAILABLE;—;—;—
+JAC;altitude_m;altitude_m;CONDITIONAL;HIGH;m;HIGH;requires route DEM
+DEVRT;next_1km_gradient_pct;next_1km_gradient_pct;CONDITIONAL;HIGH;%;HIGH;requires route DEM
+TUM;next_1km_gradient_pct;NONE;CONDITIONAL;MEDIUM;%;MEDIUM;requires route DEM
+JAC;next_1km_gradient_pct;NONE;CONDITIONAL;MEDIUM;%;MEDIUM;requires route DEM
+DEVRT;elevation_gain_100m;elevation_gain_100m;CONDITIONAL;MEDIUM;m;MEDIUM;integrated over 100 m
+TUM;elevation_gain_100m;NONE;UNAVAILABLE;—;—;—
+JAC;elevation_gain_100m;NONE;UNAVAILABLE;—;—;—
+DEVRT;next_5km_uphill_frac;next_5km_uphill_frac;CONDITIONAL;HIGH;frac;HIGH;next 5 km uphill fraction
+TUM;next_5km_uphill_frac;NONE;CONDITIONAL;MEDIUM;frac;MEDIUM;requires route DEM
+JAC;next_5km_uphill_frac;NONE;CONDITIONAL;MEDIUM;frac;MEDIUM;requires route DEM
+DEVRT;terrain_class;terrain_class;CONDITIONAL;MEDIUM;categorical;MEDIUM;paved / unpaved / etc.
+TUM;terrain_class;NONE;UNAVAILABLE;—;—;—
+JAC;terrain_class;NONE;UNAVAILABLE;—;—;—
+DEVRT;route_available;route_available;DIRECT;HIGH;bool;HIGH;always true for DEVRT
+TUM;route_available;NONE;UNAVAILABLE;—;—;—
+JAC;route_available;NONE;UNAVAILABLE;—;—;—
+DEVRT;dem_available;dem_available;DIRECT;HIGH;bool;HIGH;always true for DEVRT
+TUM;dem_available;NONE;UNAVAILABLE;—;—;—
+JAC;dem_available;NONE;UNAVAILABLE;—;—;—
+DEVRT;battery_power_kwh;battery_power_kwh;DIRECT;MEDIUM;kWh;MEDIUM;optional
+TUM;battery_power_kwh;NONE;UNAVAILABLE;—;—;—
+JAC;battery_power_kwh;NONE;UNAVAILABLE;—;—;—
+DEVRT;regen_power_kw;regen_power_kw;DIRECT;MEDIUM;kW;MEDIUM;optional;≤ 0
+TUM;regen_power_kw;NONE;UNAVAILABLE;—;—;—
+JAC;regen_power_kw;NONE;UNAVAILABLE;—;—;—
+DEVRT;battery_temperature_c;battery_temperature_c;UNVERIFIED;LOW;°C;LOW;sensor placement varies
+TUM;battery_temperature_c;NONE;UNVERIFIED;LOW;°C;LOW;sensor placement varies
+JAC;battery_temperature_c;NONE;UNVERIFIED;LOW;°C;LOW;sensor placement varies
+DEVRT;regenerative_power_kw;regen_power_kw;DIRECT;MEDIUM;kW;MEDIUM;optional;≤ 0
+TUM;regenerative_power_kw;NONE;UNAVAILABLE;—;—;—
+JAC;regenerative_power_kw;NONE;UNAVAILABLE;—;—;—
+DEVRT;energy_consumption_kwh_per_km;model output;DIRECT;HIGH;kWh/km;HIGH;model output
+TUM;energy_consumption_kwh_per_km;NONE;UNAVAILABLE;—;—;—
+JAC;energy_consumption_kwh_per_km;NONE;UNAVAILABLE;—;—;—
+DEVRT;regenerative_energy_kwh;model output;DIRECT;MEDIUM;kWh;MEDIUM;optional
+TUM;regenerative_energy_kwh;NONE;UNAVAILABLE;—;—;—
+JAC;regenerative_energy_kwh;NONE;UNAVAILABLE;—;—;—

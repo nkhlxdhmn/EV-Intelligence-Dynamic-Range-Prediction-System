@@ -1,0 +1,12 @@
+{
+  "test_global_mean_baseline_MAE": 0.05718869634437354,
+  "test_vehicle_mean_baseline_MAE": 0.05704242755508288,
+  "test_frozen_model_MAE": 0.06421215641421567,
+  "test_frozen_model_RMSE": 0.08034150138509906,
+  "test_frozen_model_R2": -0.2634897724291907,
+  "test_frozen_model_SMAPE": 43.97978774364905,
+  "test_improvement_vs_global_mean_pct": -12.281203312537345,
+  "test_improvement_vs_vehicle_mean_pct": -12.56911594831646,
+  "peak_ram_mb": 51.69879341125488,
+  "runtime_s": 3.13533353805542
+}

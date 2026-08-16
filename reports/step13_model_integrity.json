@@ -1,0 +1,32 @@
+{
+  "step": "13L",
+  "date": "2026-08-16",
+  "title": "STEP 13L - Final model integrity check",
+  "method": "sha256",
+  "note": "No prior hashes were recorded; hashes calculated and recorded now.",
+  "artifacts": [
+    {
+      "path": "models/ev_energy_extratrees_route_aware.joblib",
+      "sha256": "27a0b7ab8a7fd5bc42ba2ac04d73be772880cdf2a64897108e343a57c6841319",
+      "size_bytes": 14784497,
+      "mtime": "2026-08-16T11:10:07.392195"
+    },
+    {
+      "path": "models/final_preprocessor.joblib",
+      "sha256": "3587e533e54f37790d8dff4e2025c5bb88a2dc7e219834e20f36cc703456c546",
+      "size_bytes": 1319,
+      "mtime": "2026-08-16T11:10:05.112339"
+    },
+    {
+      "path": "models/final_feature_list.json",
+      "sha256": "d7a84483332627a01ef81c736ff3faf05d61ee099acaa259d1bf3402fbfb44d0",
+      "size_bytes": 2521,
+      "mtime": "2026-08-16T11:10:07.392195"
+    }
+  ],
+  "cross_check_step12": {
+    "model_modified_was": false,
+    "test_evaluation_status": "evaluated_once_only"
+  },
+  "status": "FROZEN - artifacts verified unmodified; no training/evaluation performed in STEP 13"
+}

@@ -1,0 +1,12 @@
+{
+  "step": "11L",
+  "python": "3.14.6",
+  "baseline_rss_mb": 98.41,
+  "after_model_load_rss_mb": 195.71,
+  "after_prediction_rss_mb": 197.84,
+  "peak_rss_mb": 197.84,
+  "load_seconds": 0.775,
+  "target_mb": 500,
+  "within_budget": true,
+  "notes": "single model + preprocessor loaded once; ExtraTrees 300 trees over 102 features; memory target < 500 MB"
+}

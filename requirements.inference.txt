@@ -1,0 +1,11 @@
+# STEP 11M - Inference API runtime requirements (pinned to tested versions).
+# Pin the major versions we tested on (Python 3.12 / 3.14-compatible).
+
+fastapi==0.115.*
+uvicorn[standard]==0.32.*
+pydantic==2.10.*
+numpy>=1.26,<3
+pandas>=2.2,<3
+scikit-learn>=1.5,<2
+joblib>=1.4,<2
+pyarrow>=15,<19

@@ -1,0 +1,18 @@
+{
+  "generated_at": "2026-08-16 11:49:13",
+  "elapsed_seconds": 39.0,
+  "peak_ram_mb": 79.25,
+  "freeze_verified": true,
+  "validation_status": "BLOCKED",
+  "blocked_reasons": [
+    "only 30/102 frozen-model features are reproducible from TUM signals; missing features are GPS/altitude terrain (route-aware) and traction-motor features that cannot be fabricated."
+  ],
+  "features_total": 102,
+  "features_available": 30,
+  "feature_status_counts": {
+    "UNAVAILABLE_NEEDS_GPS": 41,
+    "AVAILABLE": 30,
+    "UNAVAILABLE_NEEDS_MOTOR": 19,
+    "UNAVAILABLE_NEEDS_DISTANCE_TRIP": 12
+  }
+}

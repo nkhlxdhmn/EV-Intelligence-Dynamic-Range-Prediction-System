@@ -1,0 +1,5 @@
+vehicle_id,vehicle_family,dataset_id,battery_capacity_kwh,battery_chemistry,mass_kg,drivetrain_type,motor_kw,aux_load_w,regenerative_braking,wheel_size_inches,tyre_type,notes
+DACIA_SM3250,DEVRT_Dacia,DEVRT,40.0,Lithium-ion,1495,FWD,85,1200,standard,15,All-season,Reference vehicle for DEVRT fleet
+NISAN_LEAF_30,DEVRT_Nissan,DEVRT,40.0,Lithium-ion,1533,FWD,80,1100,standard,15,All-season,Reference vehicle for DEVRT fleet
+VW_CUPRA_2020,TUM_VW,TEM,45.0,Lithium-ion,1680,AWD,150,1500,advanced,18,All-season,Missing GPS/altitude; UDS data only
+JAC_IEV40,JAC_JAC,JAC,,,,,,,,,,"No verified SOC; VOL and CUR not verified; target BLOCKED"

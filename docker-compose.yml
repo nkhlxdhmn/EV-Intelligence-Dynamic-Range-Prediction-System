@@ -1,0 +1,16 @@
+# STEP 11M - Local development / quickstart compose.
+# Exposes the inference API on port 8000. No datasets are mounted; the image
+# ships only the frozen model artifacts.
+
+services:
+  inference-api:
+    build: .
+    container_name: ev-inference-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    # Optional: enable the clearly-labeled SYNTHETIC terrain provider for
+    # local demos only. NEVER enable in production.
+    # - EV_DEMO_TERRAIN=1

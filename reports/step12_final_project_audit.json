@@ -1,0 +1,28 @@
+{
+  "generated_at": "2026-08-16 12:20:00",
+  "step": "12H",
+  "tests_passed": 138,
+  "tests_run": 138,
+  "model_exists": true,
+  "feature_list_exists": true,
+  "preprocessor_exists": true,
+  "api_verified": true,
+  "api_checks": {
+    "health": "ok",
+    "model_info": "ExtraTreesRegressor / 102 features / horizon_km=5 / route_aware=true",
+    "predict": "200 OK, predicted 0.1275 kWh/km -> 219.6 km range",
+    "invalid_input_validation": "422 on soc_pct=150"
+  },
+  "test_evaluation_status": "evaluated_once_only",
+  "test_marker": "reports/.step8_test_evaluated intact (n=1537, mae=0.04112246784100891)",
+  "model_modified": false,
+  "tum_external_validation": "blocked",
+  "tum_reason": "only 30/102 frozen-model features reproducible from TUM signals; 5km future target unavailable",
+  "documentation_complete": true,
+  "frozen_model_artifact": "models/ev_energy_extratrees_route_aware.joblib (14.8 MB, untouched)",
+  "notes": [
+    "No retraining, no retuning, no re-evaluation of the DEVRT test set.",
+    "Frozen model, preprocessor and feature list unchanged.",
+    "Inference process peak memory ~198 MB (< 500 MB budget)."
+  ]
+}

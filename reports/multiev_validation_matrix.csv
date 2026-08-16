@@ -1,0 +1,6 @@
+Vehicle,Dataset,Target available,Core features available,Terrain available,Energy target confidence,Frozen model compatible,Valid external evaluation possible
+Dacia Spring,DEVRT,✅,102,✅ route-aware,HIGH,✅ (frozen model),✅ (held-out test)
+Nissan Leaf,DEVRT,✅,102,✅ route-aware,HIGH,✅ (frozen model),✅ (held-out test)
+VW ID.3,TUM,❌ BLOCKED,30/102,❌ GPS/altitude unavailable,BLOCKED,❌,❌
+CUPRA Born,TUM,❌ BLOCKED,30/102,❌ GPS/altitude unavailable,BLOCKED,❌,❌
+JAC IEV40,JAC,❌ BLOCKED,limited (speed, voltage, odometer),⚠️ unverified signals,BLOCKED,❌,❌

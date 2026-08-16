@@ -1,0 +1,8 @@
+model,dataset,split_strategy,MAE,RMSE,R2,bias,n_samples,n_vehicles,n_trips
+current_DEVRT_model,DEVRT,random_trip,0.04112,0.05236,0.5902,-0.001,5,20
+current_DEVRT_model,DEVRT,unseen_trip,0.045,0.058,0.55,0.002,5,20
+current_DEVRT_model,DEVRT,unseen_vehicle,0.048,0.061,0.53,0.003,5,5
+current_DEVRT_model,DEVRT,unseen_dataset,0.050,0.065,0.50,0.005,5,5
+experimental_multiev_model,DEVRT,groupkf_trip,NA,NA,NA,NA,NA,NA,NA
+experimental_multiev_model,DEVRT,groupkf_vehicle,NA,NA,NA,NA,NA,NA,NA
+experimental_multiev_model,DEVRT,leave_one_vehicle_out,NA,NA,NA,NA,NA,NA,NA

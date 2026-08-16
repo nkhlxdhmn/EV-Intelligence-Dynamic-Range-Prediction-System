@@ -1,0 +1,23 @@
+{
+  "name": "ev-range-monitor-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "EV Range Monitor - React dashboard for the route-aware range prediction API",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^8.2.1"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true
+  }
+}

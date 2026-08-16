@@ -1,0 +1,50 @@
+{
+  "v2_file": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed\\devrt_ml_features_v2.parquet",
+  "split_file": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed\\split_assignments.parquet",
+  "output_dir": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed",
+  "splits": {
+    "train": {
+      "file": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed\\v2_train.parquet",
+      "rows": 7418,
+      "cols": 125,
+      "trips": 36,
+      "vehicles": 2
+    },
+    "validation": {
+      "file": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed\\v2_validation.parquet",
+      "rows": 1680,
+      "cols": 125,
+      "trips": 8,
+      "vehicles": 2
+    },
+    "test": {
+      "file": "C:\\Work_Space\\EV Intelligence & Dynamic Range Prediction System\\data\\processed\\v2_test.parquet",
+      "rows": 1537,
+      "cols": 125,
+      "trips": 6,
+      "vehicles": 2
+    }
+  },
+  "validation": {
+    "no_overlap": true,
+    "issues": [],
+    "checks": {
+      "no_trip_overlap": {
+        "train_trips": 36,
+        "val_trips": 8,
+        "test_trips": 6,
+        "train_val_overlap": 0,
+        "train_test_overlap": 0,
+        "val_test_overlap": 0
+      },
+      "sample_assignment": {
+        "total": 10635,
+        "assigned": "10635",
+        "unassigned": "0"
+      }
+    }
+  },
+  "original_v2_rows": 10635,
+  "original_v2_cols": 125,
+  "status": "SUCCESS"
+}

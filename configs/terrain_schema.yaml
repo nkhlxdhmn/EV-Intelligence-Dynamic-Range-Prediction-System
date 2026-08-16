@@ -1,0 +1,67 @@
+# Terrain data schema definition
+# Units, validation ranges, and field descriptions for terrain data
+# Used by the route terrain pipeline (STEP 14)
+
+latitude:
+  type: float
+  unit: decimal_degrees
+  range: [-90.0, 90.0]
+  description: "Geodetic latitude of a route waypoint. Negative values = south of equator."
+
+longitude:
+  type: float
+  unit: decimal_degrees
+  range: [-180.0, 180.0]
+  description: "Geodetic longitude of a route waypoint. Negative values = west of prime meridian."
+
+elevation_m:
+  type: float
+  unit: "meters above mean sea level"
+  range: [-100.0, 9000.0]
+  description: "Elevation at a route waypoint obtained from DEM. Negative values possible for locations below sea level."
+
+distance_along_route_km:
+  type: float
+  unit: "kilometers along route from start"
+  range: [0.0, 1000.0]
+  description: "Cumulative distance from the route origin (waypoint 0) to this waypoint. Must be monotonically increasing."
+
+gradient_pct:
+  type: float
+  unit: "percent slope"
+  range: [-200.0, 200.0]
+  description: "Slope gradient = (elevation_difference / horizontal_distance) * 100. Positive = uphill, negative = downhill."
+  positive_uphill: true
+
+segment_length_m:
+  type: integer
+  unit: "meters"
+  range: [1, 10000]
+  description: "Horizontal distance between consecutive waypoints along the route. Must be > 0."
+
+elevation_gain_m:
+  type: float
+  unit: "meters"
+  range: [0.0, 10000.0]
+  description: "Cumulative elevation gain (ascending only) up to this waypoint. Monotonically non-decreasing."
+
+elevation_loss_m:
+  type: float
+  unit: "meters"
+  range: [0.0, 10000.0]
+  description: "Cumulative elevation loss (descending only) up to this waypoint. Monotonically non-decreasing."
+
+route_id:
+  type: string
+  max_length: 64
+  description: "Identifier for the planned route. Used to associate terrain data with a specific route prediction."
+
+timestamp:
+  type: datetime
+  description: "Prediction timestamp (UTC). Used to associate prediction with route validity period."
+
+terrain_source:
+  type: string
+  enum: [DEM_SRTM, DEM_NASA, LOCAL_STATIC, API_PROVIDER]
+  description: "Source of the elevation data. Determines validity and accuracy of elevation values."
+  default: DEM_SRTM

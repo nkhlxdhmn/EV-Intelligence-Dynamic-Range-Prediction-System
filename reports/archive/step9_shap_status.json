@@ -1,0 +1,5 @@
+{
+  "shap_status": "SKIPPED",
+  "reason": "`shap` is not installed in this environment. Installing it would add a heavy dependency chain (numba, etc.) that the project rules avoid. Permutation importance (step9b) is used as the model-agnostic explainability method instead.",
+  "max_samples_allowed": 500
+}

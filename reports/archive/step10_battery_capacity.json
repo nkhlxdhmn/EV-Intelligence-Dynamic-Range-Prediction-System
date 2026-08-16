@@ -1,0 +1,15 @@
+{
+  "generated_at": "2026-08-16 11:48:43",
+  "capacity_kwh_nominal": 58,
+  "source": "dataset README.MD fleet specifications table",
+  "per_vehicle_verified": false,
+  "status": "DERIVED",
+  "notes": [
+    "Capacity is a documented fleet specification, not a per-vehicle BMS readout.",
+    "No value_id in raw UDS maps to battery capacity.",
+    "Used only to interpret SOC deltas; NOT used to fabricate features."
+  ],
+  "documentation": [
+    "README.MD fleet specifications table: 58 kWh net, 108s2p (216 cells), both models"
+  ]
+}

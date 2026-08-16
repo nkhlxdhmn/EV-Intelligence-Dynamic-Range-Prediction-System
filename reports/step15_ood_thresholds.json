@@ -1,0 +1,28 @@
+{
+    "source": "DEVRT train + validation fleet percentile bounds",
+    "generated_for": "STEP 15 OOD detection feature-wise bounds",
+    "note": "Values below lower bound or above upper bound are considered outside training distribution.",
+    "bounds": {
+        "current_soc_pct": {"lower": 20.0, "upper": 80.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "current_speed_kmh": {"lower": 0.0, "upper": 150.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "current_altitude_m": {"lower": 0.0, "upper": 3000.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "current_temperature_c": {"lower": -10.0, "upper": 40.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "distance_since_trip_start_km": {"lower": 0.0, "upper": 500.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "time_since_trip_start_min": {"lower": 0.0, "upper": 600.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "battery_capacity_kwh": {"lower": 30.0, "upper": 100.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "current_gradient_pct": {"lower": -50.0, "upper": 80.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "speed_squared": {"lower": 0.0, "upper": 50000.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "speed_x_temperature": {"lower": 0.0, "upper": 30000.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}},
+        "speed_x_gradient": {"lower": 0.0, "upper": 6000.0, "severity_map": {"normal": 0.0, "warning": 0.3, "critical": 0.6}}
+    },
+    "severity_criteria": {
+        "normal": "value within bounds, or outside by < 1.5x range width",
+        "warning": "value outside by 1.5–3x range width",
+        "critical": "value outside by > 3x range width"
+    },
+    "example_violations": [
+        "speed_kmh: outside central training distribution (outside 0-150)",
+        "soc_pct: outside central training distribution (outside 20-80)",
+        "multiple important features are outside the training distribution. Prediction reliability is reduced."
+    ]
+}

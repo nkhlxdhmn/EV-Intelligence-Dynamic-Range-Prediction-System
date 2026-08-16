@@ -1,0 +1,24 @@
+# Full development/test environment (training, analysis, inference, API, tests).
+# requirements.inference.txt contains the minimal runtime subset for the API.
+# Verified on Python 3.12 / 3.14.
+
+# Inference / API
+fastapi>=0.115,<1
+uvicorn[standard]>=0.32,<1
+pydantic>=2.10,<3
+joblib>=1.4,<2
+
+# Data / ML
+numpy>=1.26,<3
+pandas>=2.2,<3
+scikit-learn>=1.5,<2
+pyarrow>=15,<26
+xgboost>=2,<4
+
+# Analysis / plotting (training-time only)
+matplotlib>=3.8
+seaborn>=0.13
+
+# Testing / observability
+pytest>=8
+psutil>=5.9

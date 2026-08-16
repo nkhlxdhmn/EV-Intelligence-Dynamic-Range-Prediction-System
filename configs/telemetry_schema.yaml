@@ -1,0 +1,219 @@
+# Telemetry Signal Schema Definition
+
+# Normalized signals for live EV telemetry ingestion.
+# Each signal definition includes: name, unit, datatype, valid range,
+# required/optional status, source, confidence, transformation, and model usage.
+
+# ---------------------------------------------------------------------------
+# Core vehicle signals
+# ---------------------------------------------------------------------------
+
+timestamp:
+  name: timestamp
+  unit: seconds since epoch (UTC)
+  datatype: datetime
+  valid_range: [0, 4102444800]  # roughly 1970-2100
+  required: true
+  source: adapter
+  confidence: 1.0
+  transformation: iso8601 UTC
+  model_usage: primary_feature  # model feature: timestamp feature engineering
+
+vehicle_speed_kmh:
+  name: vehicle_speed_kmh
+  unit: km/h
+  datatype: float
+  valid_range: [0.0, 300.0]
+  required: false  # optional; can be derived from GPS position difference
+  source: obd_ii | can_adapter | gps
+  confidence: 0.9
+  transformation: none
+  model_usage: primary_feature  # model feature: speed
+
+soc_pct:
+  name: soc_pct
+  unit: percent
+  datatype: float
+  valid_range: [0.0, 100.0]
+  required: false  # critical for range estimation; may be unavailable
+  source: obd_ii | can_adapter | battery_management_system
+  confidence: 0.85
+  transformation: none
+  model_usage: primary_feature  # model feature: SOC
+
+battery_voltage_v:
+  name: battery_voltage_v
+  unit: V
+  datatype: float
+  valid_range: [2.0, 500.0]
+  required: false  # important but often unavailable via generic OBD-II
+  source: obd_ii | can_adapter | battery_management_system
+  confidence: 0.8
+  transformation: none
+  model_usage: primary_feature  # model feature: voltage
+
+battery_current_a:
+  name: battery_current_a
+  unit: A
+  datatype: float
+  valid_range: [-200.0, 300.0]  # negative = charging (regeneration)
+  required: false
+  source: obd_ii | can_adapter | battery_management_system
+  confidence: 0.75
+  transformation: none
+  model_usage: primary_feature  # model feature: current
+
+battery_power_kw:
+  name: battery_power_kw
+  unit: kW
+  datatype: float
+  valid_range: [-100.0, 500.0]  # negative = regeneration
+  required: false  # derived from V * I if voltage and current available
+  source: computed | obd_ii | can_adapter
+  confidence: 0.6  # lower confidence if computed rather than measured
+  transformation: P = V * I / 1000  # if derived from voltage*current
+  model_usage: primary_feature  # model feature: power
+
+ambient_temperature_c:
+  name: ambient_temperature_c
+  unit: °C
+  datatype: float
+  valid_range: [-40.0, 60.0]
+  required: false
+  source: obd_ii | can_adapter | climate_sensor
+  confidence: 0.7
+  transformation: none
+  model_usage: secondary_feature  # model feature: temperature
+
+motor_power_kw:
+  name: motor_power_kw
+  unit: kW
+  datatype: float
+  valid_range: [-200.0, 500.0]  # negative = generator/braking
+  required: false  # often not available via generic OBD-II
+  source: obd_ii | can_adapter | vehicle_can
+  confidence: 0.5  # typically lower confidence; vehicle-specific
+  transformation: none
+  model_usage: secondary_feature  # model feature: motor power
+
+auxiliary_power_kw:
+  name: auxiliary_power_kw
+  unit: kW
+  datatype: float
+  valid_range: [0.0, 200.0]
+  required: false  # climate control, accessories, etc.
+  source: obd_ii | can_adapter | vehicle_can
+  confidence: 0.5
+  transformation: none
+  model_usage: secondary_feature  # model feature: auxiliary power
+
+regen_power_kw:
+  name: regen_power_kw
+  unit: kW
+  datatype: float
+  valid_range: [-100.0, 200.0]  # typically positive (energy to battery)
+  required: false
+  source: obd_ii | can_adapter | vehicle_can
+  confidence: 0.5
+  transformation: none
+  model_usage: secondary_feature  # model feature: regen power
+
+# ---------------------------------------------------------------------------
+# GPS / position signals
+# ---------------------------------------------------------------------------
+
+latitude:
+  name: latitude
+  unit: decimal_degrees
+  datatype: float
+  valid_range: [-90.0, 90.0]
+  required: false
+  source: gps | can_adapter
+  confidence: 0.95
+  transformation: none
+  model_usage: primary_feature  # model feature: latitude (for route mapping)
+
+longitude:
+  name: longitude
+  unit: decimal_degrees
+  datatype: float
+  valid_range: [-180.0, 180.0]
+  required: false
+  source: gps | can_adapter
+  confidence: 0.95
+  transformation: none
+  model_usage: primary_feature  # model feature: longitude (for route mapping)
+
+odometer_km:
+  name: odometer_km
+  unit: km
+  datatype: float
+  valid_range: [0.0, 1000000.0]
+  required: false
+  source: obd_ii | can_adapter | gps
+  confidence: 0.8
+  transformation: none
+  model_usage: primary_feature  # model feature: odometer
+
+# ---------------------------------------------------------------------------
+# Driver input signals
+# ---------------------------------------------------------------------------
+
+accelerator_pct:
+  name: accelerator_pct
+  unit: percent
+  datatype: float
+  valid_range: [0.0, 100.0]
+  required: false
+  source: obd_ii | can_adapter
+  confidence: 0.7
+  transformation: none
+  model_usage: secondary_feature  # model feature: accelerator position
+
+brake_pct:
+  name: brake_pct
+  unit: percent
+  datatype: float
+  valid_range: [0.0, 100.0]
+  required: false
+  source: obd_ii | can_adapter
+  confidence: 0.7
+  transformation: none
+  model_usage: secondary_feature  # model feature: brake position
+
+# ---------------------------------------------------------------------------
+# Signal provenance / metadata
+# ---------------------------------------------------------------------------
+
+signal_quality:
+  name: signal_quality
+  unit: enum {VALID, MISSING, STALE, INVALID, OUT_OF_RANGE, UNAVAILABLE}
+  datatype: string
+  valid_range: enum
+  required: false
+  source: quality_layer
+  confidence: 1.0
+  transformation: none
+  model_usage: metadata  # not a model feature; used for confidence scoring
+
+signal_age_ms:
+  name: signal_age_ms
+  unit: milliseconds
+  datatype: integer
+  valid_range: [0, 86400000]  # up to 24 hours
+  required: false
+  source: quality_layer
+  confidence: 1.0
+  transformation: none
+  model_usage: metadata  # not a model feature; used for staleness detection
+
+source:
+  name: source
+  unit: string
+  datatype: string
+  valid_range: string
+  required: false
+  source: adapter
+  confidence: 1.0
+  transformation: none
+  model_usage: metadata  # not a model feature; provenance tracking

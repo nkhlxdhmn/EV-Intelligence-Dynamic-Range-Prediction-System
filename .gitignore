@@ -1,0 +1,87 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+local/
+wheel/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+venv1/
+.venv/
+.venv1/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Test / runtime caches and logs
+.pytest_cache/
+logs/
+
+# Node / React frontend (build artifacts are never committed; run `npm run build`)
+dashboard/node_modules/
+dashboard/dist/
+
+# Generated intermediate and processed data
+data/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Model files
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.onnx
+
+# The frozen production artifacts are distribution targets and ARE committed.
+# Only the experiment models under models/step8/ stay ignored.
+!models/ev_energy_extratrees_route_aware.joblib
+!models/final_preprocessor.joblib
+
+# Datasets
+*.csv
+*.zip
+*.tar.gz
+*.tar.bz2
+*.dat
+
+# Raw datasets are kept locally only (large, own licenses); never committed.
+dataset/
+
+# Test fixture reports (kept small) ARE committed despite the *.csv rule.
+!reports/*.csv
+
+# Environment variables
+*.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS-generated files
+.DS_Store
+*~
+
+# Pyproject.toml related
+pyproject.toml

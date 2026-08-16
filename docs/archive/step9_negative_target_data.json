@@ -1,0 +1,17 @@
+{
+  "negative_target_count": 53,
+  "non_negative_count": 1627,
+  "neg_DOWNHILL_MAE": 0.06689359997588397,
+  "neg_DOWNHILL_mean_err": 0.060296994060295504,
+  "neg_DOWNHILL_count": 20,
+  "neg_FLAT_MAE": 0.08685286365249983,
+  "neg_FLAT_mean_err": 0.07736380965919777,
+  "neg_FLAT_count": 29,
+  "neg_UPHILL_MAE": 0.0374607934011381,
+  "neg_UPHILL_mean_err": -0.00032418499418410476,
+  "neg_UPHILL_count": 4,
+  "neg_speed_subset_MAE": 0.07559336262348541,
+  "neg_speed_subset_count": 53,
+  "neg_Nissan Leaf_MAE": 0.07559336262348541,
+  "neg_Nissan Leaf_count": 53
+}

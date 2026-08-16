@@ -1,0 +1,273 @@
+# Unified Schema Configuration
+
+## Design Principles
+- Define standardized concepts and expected units
+- Do NOT force raw datasets into this schema yet
+- Distinguish: required, optional, derived, and target fields
+- Use clear Python type definitions where appropriate
+
+## Battery Sub-Schema
+
+battery:
+  soc_pct:
+    unit: "%"
+    description: "State of Charge, percentage of remaining capacity"
+    required: true
+    confidence: "High when from DEVRT/TUM, Very Low for JAC"
+    
+  soh_pct:
+    unit: "%"
+    description: "State of Health, percentage of remaining battery health"
+    required: false
+    availability: "DEVRT only (soh column); TUM/JAC: not in inspected value_ids"
+    
+  battery_voltage_v:
+    unit: "V"
+    description: "Battery pack voltage"
+    required: false
+    notes: "DEVRT: indirect; TUM: value_id=1200 direct; JAC: VOL unverified (likely raw ADC)"
+    
+  battery_current_a:
+    unit: "A"
+    description: "Battery current (positive=discharge, negative=charge)"
+    required: false
+    notes: "DEVRT: implied; TUM: value_id=1205 (PTC1 current, 0-100A); JAC: CUR (-40 to 263A, unverified)"
+    
+  battery_capacity_kwh:
+    unit: "kWh"
+    description: "Usable battery pack capacity"
+    required: true
+    values: "[33, 58, 62]"  # Known fleet values: Dacia 33kWh, TUM 58kWh, Nissan Leaf 62kWh
+    
+  battery_temperature_c:
+    unit: "°C"
+    description: "Battery pack temperature"
+    required: false
+    available_sources: "DEVRT (amb_temp, Motor Temp), TUM (multiple temp value_ids)"
+
+## Driving Sub-Schema
+
+driving:
+  speed_kmh:
+    unit: "km/h"
+    description: "Vehicle speed"
+    required: true
+    available_sources: "DEVRT (speed), JAC (SPD), TUM (value_id=4 vehicle_speed)"
+    
+  acceleration_ms2:
+    unit: "m/s²"
+    description: "Acceleration (derived where available)"
+    required: false
+    derivation: "DEVRT: from speed diff; JAC: AX/AY/AZ / ~192 scaling; TUM: from speed differences"
+    
+  distance_km:
+    unit: "km"
+    description: "Distance traveled"
+    required: true
+    available_sources: "DEVRT (cumul_dist), JAC (ODO), TUM (value_id=1299 traveled_distance)"
+    
+  motor_power_kw:
+    unit: "kW"
+    description: "Motor power (derived from power signals)"
+    required: false
+    derivation: "DEVRT: Motor Pwr(w)/1000 (Nissan Leaf only); TUM: hv_aux_power/ptc_power/voltage×current"
+    
+  brake_intensity:
+    unit: (0-28 raw, not %)
+    description: "Brake pedal/status (JAC specific)"
+    required: false
+    notes: "JAC BRK 0-28 raw; DEVRT: regenwh sign; TUM: hv_aux_power sign"
+    
+  accelerator_position:
+    unit: (0-90 raw, not %)
+    description: "Accelerator position (JAC specific)"
+    required: false
+    notes: "JAC ACC 0-90 raw; not 0-100% range"
+
+## Terrain Sub-Schema
+
+terrain:
+  altitude_m:
+    unit: "m"
+    description: "Altitude above reference frame"
+    required: false
+    notes: "DEVRT: altitude+elv_spy; JAC: ALT (reference frame unknown); TUM: in JSON histograms"
+    
+  gradient_pct:
+    unit: "%"
+    description: "Road gradient percentage"
+    required: false
+    derivation: "Δaltitude_m / Δdistance_km × 100 (requires altitude + distance from same dataset)"
+    
+  uphill_flag:
+    unit: "binary"
+    description: "1 if uphill, 0 if not"
+    required: false
+    derivation: "1 if gradient_pct > 0 else 0"
+    
+  downhill_flag:
+    unit: "binary"
+    description: "1 if downhill, 0 if not"
+    required: false
+    derivation: "1 if gradient_pct < 0 else 0"
+
+## Energy Sub-Schema
+
+energy:
+  net_consumption_kwh_per_km:
+    unit: "kWh/km"
+    description: "Primary ML target: net energy consumption per kilometer"
+    required: true for modeling
+    derivation: "(soc_start - soc_end) × battery_capacity_kwh / traveled_distance_km"
+    derivable_datasets: "DEVRT, TUM (not JAC - no SOC)"
+    
+  energy_consumed_kwh:
+    unit: "kWh"
+    description: "Total energy consumed from battery"
+    required: false
+    derivation: "abs((soc_start - soc_end) × battery_capacity_kwh / 100)"
+    
+  regen_energy_kwh:
+    unit: "kWh"
+    description: "Recovered energy from regenerative braking"
+    required: false
+    derivation: "DEVRT: Σ(regenwh × time_diff_s) / 3600; TUM: Σ(negative_hv_aux_power × interval_s) / 3600"
+    derivable_datasets: "DEVRT, TUM (not JAC - no direct regen column)"
+    
+  gross_energy_consumption_kwh:
+    unit: "kWh"
+    description: "Total energy throughput (consumption + regen)"
+    required: false
+    derivation: "Σ(abs(power_w) × interval_s) / 3600"
+
+## Environment Sub-Schema
+
+environment:
+  ambient_temperature_c:
+    unit: "°C"
+    description: "Ambient air temperature"
+    required: false
+    available_sources: "DEVRT (amb_temp), TUM (value_id=15), JAC (AIR: sensor flag, NOT temperature)"
+    
+  humidity_pct:
+    unit: "%"
+    description: "Relative humidity"
+    required: false
+    availability: "NOT available in any of the 3 datasets"
+    
+  wind_speed_kmh:
+    unit: "km/h"
+    description: "Wind speed"
+    required: false
+    available_sources: "DEVRT (wind_kph, wind_mph convertible); JAC: not available; TUM: not in 29 value_ids"
+
+## Vehicle Sub-Schema
+
+vehicle:
+  vehicle_model:
+    description: "Vehicle make/model identifier"
+    required: true
+    values: "DEVRT: Dacia Spring/Nissan Leaf; JAC: IEV40 implied; TUM: VW ID.3 / CUPRA Born"
+    
+  battery_configuration:
+    description: "Battery pack configuration string"
+    required: false
+    values: "DEVRT: 33kWh/62kWh; TUM: 108s2p (58kWh); JAC: not explicit"
+
+## Target Sub-Schema
+
+target:
+  net_energy_consumption_kwh_per_km:
+    unit: "kWh/km"
+    description: "Primary ML regression target"
+    required: true
+    derivable_datasets: "DEVRT, TUM (not JAC)"
+    calculation: "(soc_start_pct - soc_end_pct) × battery_capacity_kwh / traveled_distance_km"
+    
+  soc_change_pct:
+    unit: "%"
+    description: "SOC change during observation period"
+    required: false
+    derivable_datasets: "DEVRT, TUM (not JAC)"
+
+## Derived Features Sub-Schema (Planned)
+
+derived_features:
+  - soc_change_pct
+  - energy_consumed_kwh
+  - regen_energy_kwh
+  - gradient_pct
+  - average_speed_kmh
+  - hard_braking_count
+  - eeco_mode (JAC-specific)
+  - uphill_flag
+  - downhill_flag
+
+## Missing Feature Strategy
+
+When a concept is unavailable in a dataset:
+- Document as "N/A" in the mapping
+- Do NOT invent or assume values
+- Note in model training: "Feature not available for this dataset"
+- Consider dataset exclusion from certain experiments
+- For target variable: use only datasets where target derivable (DEVRT + TUM; JAC for feature analysis only)
+
+## Data Type Definitions (Python-Ready)
+
+```python
+# Example type definitions for processed datasets
+
+from typing import Literal, Optional
+import pandas as pd
+
+# Standard types used across datasets
+StandardTypes = Literal[
+    "int", "float", "str", "datetime", "bool"
+]
+
+# Schema field definition
+SchemaField = dict[
+    "name": str,           # Field name (standard concept)
+    "dtype": StandardTypes, # Python data type
+    "unit": str,           # Unit of measurement
+    "required": bool,      # Whether required for modeling
+    "derivable_datasets": str,  # Which datasets can provide this
+    "notes": str,          # Additional notes
+]
+
+# Example schema field
+example_field: SchemaField = {
+    "name": "soc_pct",
+    "dtype": "float",
+    "unit": "%",
+    "required": True,
+    "derivable_datasets": "DEVRT, TUM",
+    "notes": "State of Charge percentage; JAC not available"
+}
+```
+
+## Schema Versioning
+
+- **Version 0.1.0**: Initial schema with core concepts (battery, driving, terrain, energy, environment, vehicle)
+- **Future versions**: Add derived features, update confidence levels, add new datasets
+- **Migration**: When updating schema, note which fields change and impact on existing models
+
+## Usage Example
+
+```python
+from configs.schema import get_schema
+
+# Get schema configuration
+schema = get_schema()
+
+# Check if a field is required and derivable
+if schema.energy.net_consumption_kwh_per_km.required:
+    print("Target field is required for modeling")
+    
+    # Check which datasets can provide it
+    if "DEVRT" in schema.energy.net_consumption_kwh_per_km.derivable_datasets:
+        print("DEVRT can provide the target")
+    
+    if "JAC" not in schema.energy.net_consumption_kwh_per_km.derivable_datasets:
+        print("JAC cannot provide the target (no SOC column)")
+```

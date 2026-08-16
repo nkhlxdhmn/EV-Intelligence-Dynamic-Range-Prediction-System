@@ -1,0 +1,1468 @@
+{
+  "title": "STEP 7.6 Optimization - Final Report",
+  "date": "2026-08-16",
+  "test_set_status": "OFF-LIMITS - never evaluated during optimization",
+  "target": "target_future_energy_kwh_per_km (SOC-derived, 5km horizon)",
+  "split_trips": {
+    "train": 36,
+    "validation": 8,
+    "test": 6
+  },
+  "split_disjointness": {
+    "train_x_validation": 0,
+    "test_x_train": 0,
+    "test_x_validation": 0
+  },
+  "leakage_audit": {
+    "v2_train": {
+      "pass": true,
+      "violations": [],
+      "constant_dropped": [
+        "Column 'hard_acceleration_count' is constant (nunique <= 1)",
+        "Column 'hard_braking_count' is constant (nunique <= 1)",
+        "Column 'is_weekend' is constant (nunique <= 1)",
+        "Column 'month' is constant (nunique <= 1)"
+      ]
+    },
+    "v2_validation": {
+      "pass": true,
+      "violations": [],
+      "constant_dropped": [
+        "Column 'hard_acceleration_count' is constant (nunique <= 1)",
+        "Column 'hard_braking_count' is constant (nunique <= 1)",
+        "Column 'is_weekend' is constant (nunique <= 1)",
+        "Column 'month' is constant (nunique <= 1)"
+      ]
+    }
+  },
+  "memory": {
+    "peak_single_trip_ram_mb": 102.3,
+    "budget_mb": 16384,
+    "notes": "All rebuild stages stream one trip at a time; v2 training frames are ~11k rows (~9 MB)."
+  },
+  "phases": {
+    "target_comparison": {
+      "t_soc_5km": {
+        "coverage": 10635,
+        "coverage_pct": 74.55,
+        "mean": 0.15055,
+        "std": 0.08872,
+        "min": -0.24799,
+        "max": 0.4957,
+        "zero_pct": 3.41,
+        "negative_pct": 1.59
+      },
+      "t_soc_10km": {
+        "coverage": 8697,
+        "coverage_pct": 60.96,
+        "mean": 0.15207,
+        "std": 0.05817,
+        "min": -0.18595,
+        "max": 0.43397,
+        "zero_pct": 0.36,
+        "negative_pct": 0.7
+      },
+      "t_soc_15km": {
+        "coverage": 6674,
+        "coverage_pct": 46.78,
+        "mean": 0.1529,
+        "std": 0.037,
+        "min": 0.0,
+        "max": 0.33054,
+        "zero_pct": 0.15,
+        "negative_pct": 0.0
+      },
+      "t_pow_5km": {
+        "coverage": 4373,
+        "coverage_pct": 30.65,
+        "mean": 0.1074,
+        "std": 0.07111,
+        "min": -0.08097,
+        "max": 0.38848,
+        "zero_pct": 0.0,
+        "negative_pct": 2.33
+      },
+      "noise_floor": {
+        "nissan_1pct_soc_62kwh": 0.62,
+        "nissan_per_km_5km": 0.124,
+        "dacia_1pct_soc_33kwh": 0.33,
+        "dacia_per_km_5km": 0.066
+      },
+      "cv": {
+        "t_soc_5km": {
+          "n": 9959,
+          "mae": 0.05451,
+          "rmse": 0.06989,
+          "r2": 0.3759
+        },
+        "t_soc_10km": {
+          "n": 8127,
+          "mae": 0.0336,
+          "rmse": 0.04358,
+          "r2": 0.4365
+        },
+        "t_soc_15km": {
+          "n": 6226,
+          "mae": 0.02648,
+          "rmse": 0.03367,
+          "r2": 0.1404
+        }
+      },
+      "hybrid_note": "Power-integrated target requires motor/regen telemetry (Nissan only, 4,373 samples). A hybrid target would use power-integrated for Nissan and SOC-derived for Dacia, but the two are NOT comparable across vehicles (different bias/noise), so a single cross-vehicle target must remain SOC-derived. Power-integrated is evaluated as a vehicle-specific alternative in P7."
+    },
+    "feature_quality": {
+      "n_rows": 9098,
+      "p4_quality": {
+        "missing_pct": {
+          "current_soc_pct": 0.0,
+          "current_altitude_m": 0.0,
+          "current_gradient_pct": 0.0,
+          "past_1km_gradient_pct": 0.0,
+          "terrain_class": 0.0,
+          "elevation_gain_100m": 0.0,
+          "elevation_gain_500m": 0.0,
+          "elevation_gain_1km": 0.0,
+          "elevation_loss_100m": 0.0,
+          "elevation_loss_500m": 0.0,
+          "elevation_loss_1km": 0.0,
+          "net_elevation_change_1km": 0.0,
+          "mean_gradient_500m": 0.0,
+          "mean_gradient_1km": 0.0,
+          "gradient_std_500m": 0.0,
+          "gradient_std_1km": 0.0,
+          "max_uphill_gradient": 0.0,
+          "max_downhill_gradient": 0.0,
+          "terrain_variability": 0.0,
+          "hillyness_score": 0.0,
+          "uphill_fraction_1km": 0.0,
+          "downhill_fraction_1km": 0.0,
+          "flat_fraction_1km": 0.0,
+          "terrain_transition_count_1km": 0.0,
+          "gradient_direction_changes_1km": 0.0,
+          "elevation_gain_rate": 6.48,
+          "elevation_loss_rate": 6.48,
+          "distance_since_trip_start_km": 0.0,
+          "time_since_trip_start_min": 0.0,
+          "trip_distance_so_far_km": 0.0,
+          "trip_elapsed_time_min": 0.0,
+          "current_speed_kmh": 57.35,
+          "mean_speed_100m": 57.35,
+          "mean_speed_500m": 57.35,
+          "mean_speed_1km": 57.35,
+          "speed_std_500m": 57.35,
+          "speed_std_1km": 57.35,
+          "min_speed_recent": 57.35,
+          "max_speed_recent": 57.35,
+          "high_speed_fraction": 57.35,
+          "stopped_fraction": 57.35,
+          "stop_count_recent": 0.0,
+          "speed_change_recent": 57.35,
+          "acceleration_mps2": 93.87,
+          "mean_acceleration": 72.9,
+          "std_acceleration": 72.9,
+          "max_acceleration": 72.9,
+          "min_acceleration": 72.9,
+          "acceleration_variability": 72.9,
+          "motor_power_kw": 57.35,
+          "torque_nm": 57.35,
+          "motor_rpm": 57.35,
+          "mean_motor_power_500m": 57.35,
+          "mean_motor_power_1km": 57.35,
+          "max_motor_power_1km": 57.35,
+          "motor_power_std_1km": 57.35,
+          "positive_motor_power_fraction": 57.35,
+          "power_variability": 57.35,
+          "aux_power_kw": 57.35,
+          "mean_aux_power_500m": 57.35,
+          "mean_aux_power_1km": 57.35,
+          "max_aux_power_1km": 57.35,
+          "aux_power_variability": 57.35,
+          "aux_energy_1km": 0.0,
+          "regen_power_kw": 57.35,
+          "mean_regen_power_500m": 57.35,
+          "mean_regen_power_1km": 57.35,
+          "max_regen_power_1km": 57.35,
+          "regen_event_count_1km": 0.0,
+          "regen_duration_estimate": 0.0,
+          "regen_energy_recovered_1km": 63.87,
+          "regen_fraction_of_driving_time": 6.48,
+          "regen_intensity": 63.92,
+          "current_temperature_c": 57.35,
+          "temperature_deviation_from_reference": 57.35,
+          "temperature_recent_mean": 57.35,
+          "temperature_recent_std": 57.35,
+          "speed_x_gradient": 57.35,
+          "speed_squared": 57.35,
+          "speed_x_temperature": 57.35,
+          "hour_of_day": 0.0,
+          "day_of_week": 0.0
+        },
+        "constant": [],
+        "near_constant": [
+          "stop_count_recent",
+          "regen_duration_estimate",
+          "regen_fraction_of_driving_time",
+          "hour_of_day",
+          "day_of_week"
+        ],
+        "low_cardinality": [
+          "terrain_class",
+          "aux_power_kw",
+          "max_aux_power_1km",
+          "regen_event_count_1km"
+        ],
+        "per_vehicle_missing": {
+          "Dacia Spring": {
+            "elevation_gain_rate": 0.44,
+            "elevation_loss_rate": 0.44,
+            "current_speed_kmh": 100.0,
+            "mean_speed_100m": 100.0,
+            "mean_speed_500m": 100.0,
+            "mean_speed_1km": 100.0,
+            "speed_std_500m": 100.0,
+            "speed_std_1km": 100.0,
+            "min_speed_recent": 100.0,
+            "max_speed_recent": 100.0,
+            "high_speed_fraction": 100.0,
+            "stopped_fraction": 100.0,
+            "speed_change_recent": 100.0,
+            "acceleration_mps2": 100.0,
+            "mean_acceleration": 100.0,
+            "std_acceleration": 100.0,
+            "max_acceleration": 100.0,
+            "min_acceleration": 100.0,
+            "acceleration_variability": 100.0,
+            "motor_power_kw": 100.0,
+            "torque_nm": 100.0,
+            "motor_rpm": 100.0,
+            "mean_motor_power_500m": 100.0,
+            "mean_motor_power_1km": 100.0,
+            "max_motor_power_1km": 100.0,
+            "motor_power_std_1km": 100.0,
+            "positive_motor_power_fraction": 100.0,
+            "power_variability": 100.0,
+            "aux_power_kw": 100.0,
+            "mean_aux_power_500m": 100.0,
+            "mean_aux_power_1km": 100.0,
+            "max_aux_power_1km": 100.0,
+            "aux_power_variability": 100.0,
+            "regen_power_kw": 100.0,
+            "mean_regen_power_500m": 100.0,
+            "mean_regen_power_1km": 100.0,
+            "max_regen_power_1km": 100.0,
+            "regen_energy_recovered_1km": 100.0,
+            "regen_fraction_of_driving_time": 0.44,
+            "regen_intensity": 100.0,
+            "current_temperature_c": 100.0,
+            "temperature_deviation_from_reference": 100.0,
+            "temperature_recent_mean": 100.0,
+            "temperature_recent_std": 100.0,
+            "speed_x_gradient": 100.0,
+            "speed_squared": 100.0,
+            "speed_x_temperature": 100.0
+          },
+          "Nissan Leaf": {
+            "elevation_gain_rate": 14.61,
+            "elevation_loss_rate": 14.61,
+            "acceleration_mps2": 85.62,
+            "mean_acceleration": 36.44,
+            "std_acceleration": 36.44,
+            "max_acceleration": 36.44,
+            "min_acceleration": 36.44,
+            "acceleration_variability": 36.44,
+            "regen_energy_recovered_1km": 15.28,
+            "regen_fraction_of_driving_time": 14.61,
+            "regen_intensity": 15.39
+          }
+        }
+      },
+      "p5_redundancy": {
+        "corr_threshold": 0.95,
+        "clusters": [
+          {
+            "members": [
+              "distance_since_trip_start_km",
+              "trip_distance_so_far_km"
+            ],
+            "keep": "trip_distance_so_far_km"
+          },
+          {
+            "members": [
+              "time_since_trip_start_min",
+              "trip_elapsed_time_min"
+            ],
+            "keep": "trip_elapsed_time_min"
+          },
+          {
+            "members": [
+              "current_speed_kmh",
+              "mean_speed_100m",
+              "motor_rpm",
+              "speed_squared"
+            ],
+            "keep": "current_speed_kmh"
+          },
+          {
+            "members": [
+              "mean_speed_500m",
+              "mean_speed_1km",
+              "min_speed_recent"
+            ],
+            "keep": "min_speed_recent"
+          },
+          {
+            "members": [
+              "std_acceleration",
+              "acceleration_variability"
+            ],
+            "keep": "std_acceleration"
+          },
+          {
+            "members": [
+              "motor_power_std_1km",
+              "power_variability"
+            ],
+            "keep": "power_variability"
+          },
+          {
+            "members": [
+              "aux_power_kw",
+              "mean_aux_power_500m",
+              "mean_aux_power_1km"
+            ],
+            "keep": "mean_aux_power_1km"
+          },
+          {
+            "members": [
+              "aux_energy_1km",
+              "regen_duration_estimate"
+            ],
+            "keep": "aux_energy_1km"
+          },
+          {
+            "members": [
+              "regen_power_kw",
+              "mean_regen_power_500m",
+              "mean_regen_power_1km",
+              "max_regen_power_1km"
+            ],
+            "keep": "regen_power_kw"
+          },
+          {
+            "members": [
+              "current_temperature_c",
+              "temperature_deviation_from_reference",
+              "temperature_recent_mean"
+            ],
+            "keep": "temperature_recent_mean"
+          }
+        ],
+        "dropped_redundant": [
+          "acceleration_variability",
+          "aux_power_kw",
+          "current_temperature_c",
+          "distance_since_trip_start_km",
+          "max_regen_power_1km",
+          "mean_aux_power_500m",
+          "mean_regen_power_1km",
+          "mean_regen_power_500m",
+          "mean_speed_100m",
+          "mean_speed_1km",
+          "mean_speed_500m",
+          "motor_power_std_1km",
+          "motor_rpm",
+          "regen_duration_estimate",
+          "speed_squared",
+          "temperature_deviation_from_reference",
+          "time_since_trip_start_min"
+        ],
+        "kept_in_clusters": [
+          "aux_energy_1km",
+          "current_speed_kmh",
+          "mean_aux_power_1km",
+          "min_speed_recent",
+          "power_variability",
+          "regen_power_kw",
+          "std_acceleration",
+          "temperature_recent_mean",
+          "trip_distance_so_far_km",
+          "trip_elapsed_time_min"
+        ],
+        "top_pairs": [
+          {
+            "a": "distance_since_trip_start_km",
+            "b": "trip_distance_so_far_km",
+            "corr": 1.0,
+            "abs_target_a": 0.1037,
+            "abs_target_b": 0.1037
+          },
+          {
+            "a": "time_since_trip_start_min",
+            "b": "trip_elapsed_time_min",
+            "corr": 1.0,
+            "abs_target_a": 0.135,
+            "abs_target_b": 0.135
+          },
+          {
+            "a": "std_acceleration",
+            "b": "acceleration_variability",
+            "corr": 1.0,
+            "abs_target_a": 0.0788,
+            "abs_target_b": 0.0788
+          },
+          {
+            "a": "motor_power_std_1km",
+            "b": "power_variability",
+            "corr": 1.0,
+            "abs_target_a": 0.0876,
+            "abs_target_b": 0.0876
+          },
+          {
+            "a": "regen_power_kw",
+            "b": "max_regen_power_1km",
+            "corr": 1.0,
+            "abs_target_a": 0.065,
+            "abs_target_b": 0.065
+          },
+          {
+            "a": "current_temperature_c",
+            "b": "temperature_deviation_from_reference",
+            "corr": 1.0,
+            "abs_target_a": 0.06,
+            "abs_target_b": 0.06
+          },
+          {
+            "a": "mean_regen_power_500m",
+            "b": "mean_regen_power_1km",
+            "corr": 0.9999,
+            "abs_target_a": 0.0609,
+            "abs_target_b": 0.0575
+          },
+          {
+            "a": "regen_power_kw",
+            "b": "mean_regen_power_500m",
+            "corr": 0.9998,
+            "abs_target_a": 0.065,
+            "abs_target_b": 0.0609
+          },
+          {
+            "a": "mean_regen_power_500m",
+            "b": "max_regen_power_1km",
+            "corr": 0.9998,
+            "abs_target_a": 0.0609,
+            "abs_target_b": 0.065
+          },
+          {
+            "a": "regen_power_kw",
+            "b": "mean_regen_power_1km",
+            "corr": 0.9996,
+            "abs_target_a": 0.065,
+            "abs_target_b": 0.0575
+          },
+          {
+            "a": "mean_regen_power_1km",
+            "b": "max_regen_power_1km",
+            "corr": 0.9996,
+            "abs_target_a": 0.0575,
+            "abs_target_b": 0.065
+          },
+          {
+            "a": "current_temperature_c",
+            "b": "temperature_recent_mean",
+            "corr": 0.9992,
+            "abs_target_a": 0.06,
+            "abs_target_b": 0.0614
+          },
+          {
+            "a": "temperature_deviation_from_reference",
+            "b": "temperature_recent_mean",
+            "corr": 0.9992,
+            "abs_target_a": 0.06,
+            "abs_target_b": 0.0614
+          },
+          {
+            "a": "current_speed_kmh",
+            "b": "motor_rpm",
+            "corr": 0.9944,
+            "abs_target_a": 0.054,
+            "abs_target_b": 0.0535
+          },
+          {
+            "a": "mean_aux_power_500m",
+            "b": "mean_aux_power_1km",
+            "corr": 0.9903,
+            "abs_target_a": 0.0107,
+            "abs_target_b": 0.0116
+          },
+          {
+            "a": "mean_speed_100m",
+            "b": "motor_rpm",
+            "corr": 0.9886,
+            "abs_target_a": 0.053,
+            "abs_target_b": 0.0535
+          },
+          {
+            "a": "current_speed_kmh",
+            "b": "mean_speed_100m",
+            "corr": 0.9878,
+            "abs_target_a": 0.054,
+            "abs_target_b": 0.053
+          },
+          {
+            "a": "mean_speed_500m",
+            "b": "min_speed_recent",
+            "corr": 0.9843,
+            "abs_target_a": 0.0486,
+            "abs_target_b": 0.06
+          },
+          {
+            "a": "aux_energy_1km",
+            "b": "regen_duration_estimate",
+            "corr": 0.9797,
+            "abs_target_a": 0.0621,
+            "abs_target_b": 0.0603
+          },
+          {
+            "a": "mean_speed_100m",
+            "b": "speed_squared",
+            "corr": 0.9729,
+            "abs_target_a": 0.053,
+            "abs_target_b": 0.0508
+          },
+          {
+            "a": "mean_speed_500m",
+            "b": "mean_speed_1km",
+            "corr": 0.9701,
+            "abs_target_a": 0.0486,
+            "abs_target_b": 0.0504
+          },
+          {
+            "a": "current_speed_kmh",
+            "b": "speed_squared",
+            "corr": 0.9699,
+            "abs_target_a": 0.054,
+            "abs_target_b": 0.0508
+          },
+          {
+            "a": "aux_power_kw",
+            "b": "mean_aux_power_500m",
+            "corr": 0.9696,
+            "abs_target_a": 0.007,
+            "abs_target_b": 0.0107
+          },
+          {
+            "a": "motor_rpm",
+            "b": "speed_squared",
+            "corr": 0.9663,
+            "abs_target_a": 0.0535,
+            "abs_target_b": 0.0508
+          },
+          {
+            "a": "aux_power_kw",
+            "b": "mean_aux_power_1km",
+            "corr": 0.9553,
+            "abs_target_a": 0.007,
+            "abs_target_b": 0.0116
+          },
+          {
+            "a": "mean_speed_100m",
+            "b": "mean_speed_500m",
+            "corr": 0.9542,
+            "abs_target_a": 0.053,
+            "abs_target_b": 0.0486
+          },
+          {
+            "a": "mean_speed_1km",
+            "b": "min_speed_recent",
+            "corr": 0.951,
+            "abs_target_a": 0.0504,
+            "abs_target_b": 0.06
+          }
+        ],
+        "feature_count_before": 82,
+        "feature_count_after_clusters": 65
+      },
+      "p6_importance": {
+        "xgb": {
+          "n": 9098,
+          "mae": 0.05455,
+          "importances": {
+            "current_altitude_m": 0.015541,
+            "trip_distance_so_far_km": 0.00719,
+            "trip_elapsed_time_min": 0.005135,
+            "day_of_week": 0.002071,
+            "regen_power_kw": 0.001209,
+            "current_soc_pct": 0.00075,
+            "max_downhill_gradient": 0.000734,
+            "temperature_recent_mean": 0.000436,
+            "max_uphill_gradient": 0.000399,
+            "elevation_gain_500m": 0.000378,
+            "elevation_loss_1km": 0.000348,
+            "mean_gradient_1km": 0.000298,
+            "min_speed_recent": 0.00024,
+            "regen_energy_recovered_1km": 0.000236,
+            "mean_gradient_500m": 0.000224,
+            "past_1km_gradient_pct": 0.000135,
+            "max_motor_power_1km": 0.00013,
+            "power_variability": 0.000121,
+            "regen_intensity": 0.000109,
+            "elevation_gain_1km": 9.1e-05,
+            "current_speed_kmh": 8.5e-05,
+            "net_elevation_change_1km": 8.4e-05,
+            "flat_fraction_1km": 7.6e-05,
+            "mean_aux_power_1km": 6.3e-05,
+            "speed_std_500m": 5.4e-05,
+            "terrain_variability": 5.3e-05,
+            "max_acceleration": 4.9e-05,
+            "hillyness_score": 4.5e-05,
+            "mean_motor_power_500m": 4.1e-05,
+            "elevation_loss_500m": 4.1e-05,
+            "downhill_fraction_1km": 3.3e-05,
+            "gradient_std_1km": 3.2e-05,
+            "elevation_gain_rate": 2.8e-05,
+            "mean_acceleration": 2.7e-05,
+            "torque_nm": 2.6e-05,
+            "aux_power_variability": 1.3e-05,
+            "elevation_gain_100m": 1.2e-05,
+            "hour_of_day": 7e-06,
+            "speed_x_gradient": 5e-06,
+            "aux_energy_1km": 4e-06,
+            "max_aux_power_1km": 1e-06,
+            "acceleration_mps2": 0.0,
+            "regen_event_count_1km": 0.0,
+            "speed_change_recent": -2e-06,
+            "mean_motor_power_1km": -2e-06,
+            "current_gradient_pct": -3e-06,
+            "gradient_direction_changes_1km": -4e-06,
+            "stop_count_recent": -5e-06,
+            "high_speed_fraction": -6e-06,
+            "positive_motor_power_fraction": -6e-06,
+            "elevation_loss_100m": -7e-06,
+            "std_acceleration": -1.1e-05,
+            "temperature_recent_std": -1.2e-05,
+            "terrain_transition_count_1km": -1.2e-05,
+            "motor_power_kw": -1.7e-05,
+            "uphill_fraction_1km": -2e-05,
+            "regen_fraction_of_driving_time": -2.9e-05,
+            "speed_x_temperature": -5.1e-05,
+            "elevation_loss_rate": -5.4e-05,
+            "stopped_fraction": -8.8e-05,
+            "max_speed_recent": -9.9e-05,
+            "min_acceleration": -0.00012,
+            "speed_std_1km": -0.000123,
+            "gradient_std_500m": -0.00017
+          }
+        },
+        "random_forest": {
+          "n": 9098,
+          "mae": 0.05486,
+          "importances": {
+            "current_altitude_m": 0.017667,
+            "trip_distance_so_far_km": 0.004576,
+            "day_of_week": 0.002323,
+            "trip_elapsed_time_min": 0.002184,
+            "flat_fraction_1km": 0.000565,
+            "max_downhill_gradient": 0.000525,
+            "net_elevation_change_1km": 0.000421,
+            "elevation_loss_1km": 0.000379,
+            "past_1km_gradient_pct": 0.000335,
+            "mean_gradient_1km": 0.00027,
+            "mean_gradient_500m": 0.00026,
+            "elevation_gain_500m": 0.000222,
+            "max_uphill_gradient": 0.000208,
+            "hour_of_day": 0.000168,
+            "gradient_std_1km": 0.000126,
+            "elevation_loss_rate": 0.000125,
+            "current_speed_kmh": 0.000117,
+            "terrain_transition_count_1km": 0.000104,
+            "min_speed_recent": 9.4e-05,
+            "speed_x_temperature": 9.4e-05,
+            "speed_std_1km": 8.6e-05,
+            "elevation_gain_1km": 6.7e-05,
+            "max_speed_recent": 6.6e-05,
+            "regen_energy_recovered_1km": 6.2e-05,
+            "downhill_fraction_1km": 6.2e-05,
+            "uphill_fraction_1km": 4.6e-05,
+            "elevation_loss_500m": 4.4e-05,
+            "regen_power_kw": 3.8e-05,
+            "gradient_direction_changes_1km": 3.3e-05,
+            "regen_intensity": 3.2e-05,
+            "temperature_recent_std": 2.8e-05,
+            "mean_motor_power_1km": 2.5e-05,
+            "hillyness_score": 2.5e-05,
+            "gradient_std_500m": 2.3e-05,
+            "mean_acceleration": 1.7e-05,
+            "max_acceleration": 1.2e-05,
+            "speed_change_recent": 9e-06,
+            "aux_energy_1km": 8e-06,
+            "torque_nm": 8e-06,
+            "elevation_gain_100m": 7e-06,
+            "terrain_variability": 4e-06,
+            "current_soc_pct": 1e-06,
+            "stopped_fraction": 0.0,
+            "regen_event_count_1km": -0.0,
+            "acceleration_mps2": -0.0,
+            "stop_count_recent": -1e-06,
+            "mean_motor_power_500m": -1e-06,
+            "current_gradient_pct": -2e-06,
+            "std_acceleration": -2e-06,
+            "motor_power_kw": -3e-06,
+            "speed_x_gradient": -4e-06,
+            "regen_fraction_of_driving_time": -4e-06,
+            "speed_std_500m": -4e-06,
+            "elevation_loss_100m": -4e-06,
+            "aux_power_variability": -5e-06,
+            "max_aux_power_1km": -5e-06,
+            "mean_aux_power_1km": -8e-06,
+            "elevation_gain_rate": -1.9e-05,
+            "high_speed_fraction": -2.7e-05,
+            "min_acceleration": -3.7e-05,
+            "max_motor_power_1km": -7.1e-05,
+            "temperature_recent_mean": -7.2e-05,
+            "positive_motor_power_fraction": -7.8e-05,
+            "power_variability": -0.000133
+          }
+        }
+      },
+      "redundancy_trimmed_features": [
+        "current_soc_pct",
+        "current_altitude_m",
+        "current_gradient_pct",
+        "past_1km_gradient_pct",
+        "terrain_class",
+        "elevation_gain_100m",
+        "elevation_gain_500m",
+        "elevation_gain_1km",
+        "elevation_loss_100m",
+        "elevation_loss_500m",
+        "elevation_loss_1km",
+        "net_elevation_change_1km",
+        "mean_gradient_500m",
+        "mean_gradient_1km",
+        "gradient_std_500m",
+        "gradient_std_1km",
+        "max_uphill_gradient",
+        "max_downhill_gradient",
+        "terrain_variability",
+        "hillyness_score",
+        "uphill_fraction_1km",
+        "downhill_fraction_1km",
+        "flat_fraction_1km",
+        "terrain_transition_count_1km",
+        "gradient_direction_changes_1km",
+        "elevation_gain_rate",
+        "elevation_loss_rate",
+        "trip_distance_so_far_km",
+        "trip_elapsed_time_min",
+        "current_speed_kmh",
+        "speed_std_500m",
+        "speed_std_1km",
+        "min_speed_recent",
+        "max_speed_recent",
+        "high_speed_fraction",
+        "stopped_fraction",
+        "stop_count_recent",
+        "speed_change_recent",
+        "acceleration_mps2",
+        "mean_acceleration",
+        "std_acceleration",
+        "max_acceleration",
+        "min_acceleration",
+        "motor_power_kw",
+        "torque_nm",
+        "mean_motor_power_500m",
+        "mean_motor_power_1km",
+        "max_motor_power_1km",
+        "positive_motor_power_fraction",
+        "power_variability",
+        "mean_aux_power_1km",
+        "max_aux_power_1km",
+        "aux_power_variability",
+        "aux_energy_1km",
+        "regen_power_kw",
+        "regen_event_count_1km",
+        "regen_energy_recovered_1km",
+        "regen_fraction_of_driving_time",
+        "regen_intensity",
+        "temperature_recent_mean",
+        "temperature_recent_std",
+        "speed_x_gradient",
+        "speed_x_temperature",
+        "hour_of_day",
+        "day_of_week"
+      ]
+    },
+    "vehicle_strategy": {
+      "models": {
+        "A_common_only": {
+          "features": 34,
+          "n": 9098,
+          "n_dacia": 5218,
+          "n_nissan": 3880,
+          "mae": 0.05516,
+          "rmse": 0.07119,
+          "r2": 0.3712,
+          "mae_dacia": 0.04604,
+          "mae_nissan": 0.06742
+        },
+        "B_common_plus_telemetry": {
+          "features": 83,
+          "n": 9098,
+          "n_dacia": 5218,
+          "n_nissan": 3880,
+          "mae": 0.05467,
+          "rmse": 0.07137,
+          "r2": 0.3681,
+          "mae_dacia": 0.04462,
+          "mae_nissan": 0.06818
+        },
+        "C_dacia_only": {
+          "features": 34,
+          "n": 5218,
+          "n_dacia": 5218,
+          "n_nissan": 0,
+          "mae": 0.05188,
+          "rmse": 0.06668,
+          "r2": 0.137,
+          "mae_dacia": 0.05188,
+          "mae_nissan": null
+        },
+        "D_nissan_only": {
+          "features": 83,
+          "n": 3880,
+          "n_dacia": 0,
+          "n_nissan": 3880,
+          "mae": 0.07561,
+          "rmse": 0.09514,
+          "r2": 0.2387,
+          "mae_dacia": null,
+          "mae_nissan": 0.07561
+        },
+        "E_gated_telemetry": {
+          "features": 83,
+          "n": 9098,
+          "n_dacia": 5218,
+          "n_nissan": 3880,
+          "mae": 0.05437,
+          "rmse": 0.07159,
+          "r2": 0.3641,
+          "mae_dacia": 0.0443,
+          "mae_nissan": 0.06792
+        }
+      }
+    },
+    "new_features": {
+      "new_features": [
+        "hour_sin",
+        "hour_cos",
+        "is_weekend",
+        "trip_phase",
+        "next_1km_net_elev_m",
+        "next_1km_gradient_pct",
+        "next_1km_gain_m",
+        "next_1km_loss_m",
+        "next_2km_net_elev_m",
+        "next_2km_gradient_pct",
+        "next_2km_gain_m",
+        "next_2km_loss_m",
+        "next_5km_net_elev_m",
+        "next_5km_gradient_pct",
+        "next_5km_gain_m",
+        "next_5km_loss_m",
+        "next_5km_uphill_frac",
+        "next_5km_downhill_frac",
+        "next_5km_flat_frac",
+        "speed_p10",
+        "speed_p50",
+        "speed_p90",
+        "speed_iqr",
+        "mean_pos_accel",
+        "mean_neg_accel",
+        "regen_share_1km",
+        "regen_events_per_km",
+        "temperature_bucket"
+      ],
+      "cv": {
+        "A_common_only": {
+          "n_features": 33,
+          "n": 9098,
+          "mae": 0.05515,
+          "rmse": 0.07119,
+          "r2": 0.3712,
+          "mae_dacia": 0.04537,
+          "mae_nissan": 0.06831
+        },
+        "B_common_plus_telemetry": {
+          "n_features": 77,
+          "n": 9098,
+          "mae": 0.05576,
+          "rmse": 0.07345,
+          "r2": 0.3306,
+          "mae_dacia": 0.04467,
+          "mae_nissan": 0.07067
+        },
+        "C_plus_new_features": {
+          "n_features": 105,
+          "n": 9098,
+          "mae": 0.04036,
+          "rmse": 0.05284,
+          "r2": 0.6536,
+          "mae_dacia": 0.0347,
+          "mae_nissan": 0.04796
+        }
+      }
+    },
+    "model_benchmark": {
+      "features": [
+        "current_soc_pct",
+        "current_altitude_m",
+        "current_gradient_pct",
+        "past_1km_gradient_pct",
+        "elevation_gain_100m",
+        "elevation_gain_500m",
+        "elevation_gain_1km",
+        "elevation_loss_100m",
+        "elevation_loss_500m",
+        "elevation_loss_1km",
+        "net_elevation_change_1km",
+        "mean_gradient_500m",
+        "mean_gradient_1km",
+        "gradient_std_500m",
+        "gradient_std_1km",
+        "max_uphill_gradient",
+        "max_downhill_gradient",
+        "terrain_variability",
+        "hillyness_score",
+        "uphill_fraction_1km",
+        "downhill_fraction_1km",
+        "flat_fraction_1km",
+        "terrain_transition_count_1km",
+        "gradient_direction_changes_1km",
+        "elevation_gain_rate",
+        "elevation_loss_rate",
+        "distance_since_trip_start_km",
+        "time_since_trip_start_min",
+        "trip_distance_so_far_km",
+        "trip_elapsed_time_min",
+        "hour_of_day",
+        "day_of_week",
+        "current_speed_kmh",
+        "mean_speed_500m",
+        "mean_speed_1km",
+        "speed_std_500m",
+        "speed_std_1km",
+        "min_speed_recent",
+        "max_speed_recent",
+        "high_speed_fraction",
+        "stopped_fraction",
+        "stop_count_recent",
+        "speed_change_recent",
+        "acceleration_mps2",
+        "mean_acceleration",
+        "std_acceleration",
+        "max_acceleration",
+        "min_acceleration",
+        "motor_power_kw",
+        "torque_nm",
+        "motor_rpm",
+        "mean_motor_power_500m",
+        "mean_motor_power_1km",
+        "max_motor_power_1km",
+        "positive_motor_power_fraction",
+        "power_variability",
+        "aux_power_kw",
+        "mean_aux_power_500m",
+        "mean_aux_power_1km",
+        "max_aux_power_1km",
+        "aux_power_variability",
+        "aux_energy_1km",
+        "regen_power_kw",
+        "mean_regen_power_500m",
+        "mean_regen_power_1km",
+        "max_regen_power_1km",
+        "regen_event_count_1km",
+        "regen_duration_estimate",
+        "regen_energy_recovered_1km",
+        "regen_fraction_of_driving_time",
+        "regen_intensity",
+        "current_temperature_c",
+        "temperature_recent_mean",
+        "speed_x_gradient",
+        "speed_squared",
+        "speed_x_temperature",
+        "hour_sin",
+        "hour_cos",
+        "trip_phase",
+        "next_1km_net_elev_m",
+        "next_1km_gradient_pct",
+        "next_1km_gain_m",
+        "next_1km_loss_m",
+        "next_2km_net_elev_m",
+        "next_2km_gradient_pct",
+        "next_2km_gain_m",
+        "next_2km_loss_m",
+        "next_5km_net_elev_m",
+        "next_5km_gradient_pct",
+        "next_5km_gain_m",
+        "next_5km_loss_m",
+        "next_5km_uphill_frac",
+        "next_5km_downhill_frac",
+        "next_5km_flat_frac",
+        "speed_p10",
+        "speed_p50",
+        "speed_p90",
+        "speed_iqr",
+        "mean_pos_accel",
+        "mean_neg_accel",
+        "regen_share_1km",
+        "regen_events_per_km",
+        "temperature_bucket"
+      ],
+      "results": {
+        "baseline_global_mean": {
+          "n": 9098,
+          "mae": 0.0656,
+          "rmse": 0.08978,
+          "r2": 0.0
+        },
+        "bench_xgb": {
+          "n": 9098,
+          "mae": 0.03987,
+          "rmse": 0.05246,
+          "r2": 0.6585,
+          "mae_dacia": 0.03472,
+          "mae_nissan": 0.04678
+        },
+        "bench_rf": {
+          "n": 9098,
+          "mae": 0.04082,
+          "rmse": 0.05481,
+          "r2": 0.6273,
+          "mae_dacia": 0.03632,
+          "mae_nissan": 0.04687
+        },
+        "bench_et": {
+          "n": 9098,
+          "mae": 0.03872,
+          "rmse": 0.05114,
+          "r2": 0.6756,
+          "mae_dacia": 0.03452,
+          "mae_nissan": 0.04438
+        },
+        "bench_gbrt": {
+          "n": 9098,
+          "mae": 0.04187,
+          "rmse": 0.05442,
+          "r2": 0.6325,
+          "mae_dacia": 0.03647,
+          "mae_nissan": 0.04913
+        },
+        "tune_xgb": {
+          "n": 9098,
+          "mae": 0.04056,
+          "rmse": 0.05299,
+          "r2": 0.6516,
+          "mae_dacia": 0.03517,
+          "mae_nissan": 0.0478
+        },
+        "tune_rf": {
+          "n": 9098,
+          "mae": 0.04169,
+          "rmse": 0.05495,
+          "r2": 0.6254,
+          "mae_dacia": 0.03694,
+          "mae_nissan": 0.04808
+        },
+        "tune_et": {
+          "n": 9098,
+          "mae": 0.03939,
+          "rmse": 0.05143,
+          "r2": 0.6718,
+          "mae_dacia": 0.03454,
+          "mae_nissan": 0.04591
+        }
+      },
+      "best_per_family": {
+        "xgb": {
+          "n": 9098,
+          "mae": 0.03997,
+          "rmse": 0.05264,
+          "r2": 0.6562,
+          "mae_dacia": 0.03467,
+          "mae_nissan": 0.04711
+        },
+        "rf": {
+          "n": 9098,
+          "mae": 0.04086,
+          "rmse": 0.05496,
+          "r2": 0.6252,
+          "mae_dacia": 0.03645,
+          "mae_nissan": 0.0468
+        },
+        "et": {
+          "n": 9098,
+          "mae": 0.03866,
+          "rmse": 0.05111,
+          "r2": 0.6759,
+          "mae_dacia": 0.03396,
+          "mae_nissan": 0.04499
+        }
+      }
+    },
+    "stability_ensemble": {
+      "stability_ExtraTrees": {
+        "mae_mean": 0.04016,
+        "mae_std": 0.00096,
+        "mae_runs": [
+          0.03936,
+          0.0393,
+          0.03958,
+          0.04172,
+          0.04082
+        ],
+        "rmse_mean": 0.05272,
+        "r2_mean": 0.6551,
+        "r2_std": 0.0156
+      },
+      "stability_XGBoost": {
+        "mae_mean": 0.04147,
+        "mae_std": 0.00096,
+        "mae_runs": [
+          0.04119,
+          0.04003,
+          0.04105,
+          0.04239,
+          0.04269
+        ],
+        "rmse_mean": 0.05416,
+        "r2_mean": 0.6359,
+        "r2_std": 0.0163
+      },
+      "stability_RandomForest": {
+        "mae_mean": 0.04174,
+        "mae_std": 0.00041,
+        "mae_runs": [
+          0.04117,
+          0.04164,
+          0.04216,
+          0.04225,
+          0.04146
+        ],
+        "rmse_mean": 0.05639,
+        "r2_mean": 0.6053,
+        "r2_std": 0.0157
+      },
+      "single_ExtraTrees": {
+        "mae": 0.03866,
+        "rmse": 0.05111,
+        "r2": 0.6759
+      },
+      "single_XGBoost": {
+        "mae": 0.04015,
+        "rmse": 0.05298,
+        "r2": 0.6517
+      },
+      "avg_ET_XGB": {
+        "mae": 0.03881,
+        "rmse": 0.0513,
+        "r2": 0.6735
+      },
+      "avg_ET_XGB_RF": {
+        "mae": 0.03925,
+        "rmse": 0.05182,
+        "r2": 0.6668
+      },
+      "stacked_ridge_OOF": {
+        "mae": 0.03904,
+        "rmse": 0.0516,
+        "r2": 0.6696
+      },
+      "set_common_only": {
+        "mae_mean": 0.05298,
+        "mae_std": 0.0,
+        "mae_runs": [
+          0.05298
+        ],
+        "rmse_mean": 0.06836,
+        "r2_mean": 0.4203,
+        "r2_std": 0.0
+      },
+      "set_common_plus_new": {
+        "mae_mean": 0.03941,
+        "mae_std": 0.0,
+        "mae_runs": [
+          0.03941
+        ],
+        "rmse_mean": 0.05194,
+        "r2_mean": 0.6653,
+        "r2_std": 0.0
+      },
+      "set_common_plus_telemetry": {
+        "mae_mean": 0.05355,
+        "mae_std": 0.0,
+        "mae_runs": [
+          0.05355
+        ],
+        "rmse_mean": 0.06913,
+        "r2_mean": 0.4071,
+        "r2_std": 0.0
+      },
+      "set_full": {
+        "mae_mean": 0.03936,
+        "mae_std": 0.0,
+        "mae_runs": [
+          0.03936
+        ],
+        "rmse_mean": 0.0516,
+        "r2_mean": 0.6696,
+        "r2_std": 0.0
+      },
+      "final_feature_set": [
+        "current_soc_pct",
+        "current_altitude_m",
+        "current_gradient_pct",
+        "past_1km_gradient_pct",
+        "elevation_gain_100m",
+        "elevation_gain_500m",
+        "elevation_gain_1km",
+        "elevation_loss_100m",
+        "elevation_loss_500m",
+        "elevation_loss_1km",
+        "net_elevation_change_1km",
+        "mean_gradient_500m",
+        "mean_gradient_1km",
+        "gradient_std_500m",
+        "gradient_std_1km",
+        "max_uphill_gradient",
+        "max_downhill_gradient",
+        "terrain_variability",
+        "hillyness_score",
+        "uphill_fraction_1km",
+        "downhill_fraction_1km",
+        "flat_fraction_1km",
+        "terrain_transition_count_1km",
+        "gradient_direction_changes_1km",
+        "elevation_gain_rate",
+        "elevation_loss_rate",
+        "distance_since_trip_start_km",
+        "time_since_trip_start_min",
+        "trip_distance_so_far_km",
+        "trip_elapsed_time_min",
+        "hour_of_day",
+        "day_of_week",
+        "current_speed_kmh",
+        "mean_speed_500m",
+        "mean_speed_1km",
+        "speed_std_500m",
+        "speed_std_1km",
+        "min_speed_recent",
+        "max_speed_recent",
+        "high_speed_fraction",
+        "stopped_fraction",
+        "stop_count_recent",
+        "speed_change_recent",
+        "acceleration_mps2",
+        "mean_acceleration",
+        "std_acceleration",
+        "max_acceleration",
+        "min_acceleration",
+        "motor_power_kw",
+        "torque_nm",
+        "motor_rpm",
+        "mean_motor_power_500m",
+        "mean_motor_power_1km",
+        "max_motor_power_1km",
+        "positive_motor_power_fraction",
+        "power_variability",
+        "aux_power_kw",
+        "mean_aux_power_500m",
+        "mean_aux_power_1km",
+        "max_aux_power_1km",
+        "aux_power_variability",
+        "aux_energy_1km",
+        "regen_power_kw",
+        "mean_regen_power_500m",
+        "mean_regen_power_1km",
+        "max_regen_power_1km",
+        "regen_event_count_1km",
+        "regen_duration_estimate",
+        "regen_energy_recovered_1km",
+        "regen_fraction_of_driving_time",
+        "regen_intensity",
+        "current_temperature_c",
+        "temperature_recent_mean",
+        "speed_x_gradient",
+        "speed_squared",
+        "speed_x_temperature",
+        "hour_sin",
+        "hour_cos",
+        "trip_phase",
+        "next_1km_net_elev_m",
+        "next_1km_gradient_pct",
+        "next_1km_gain_m",
+        "next_1km_loss_m",
+        "next_2km_net_elev_m",
+        "next_2km_gradient_pct",
+        "next_2km_gain_m",
+        "next_2km_loss_m",
+        "next_5km_net_elev_m",
+        "next_5km_gradient_pct",
+        "next_5km_gain_m",
+        "next_5km_loss_m",
+        "next_5km_uphill_frac",
+        "next_5km_downhill_frac",
+        "next_5km_flat_frac",
+        "speed_p10",
+        "speed_p50",
+        "speed_p90",
+        "speed_iqr",
+        "mean_pos_accel",
+        "mean_neg_accel",
+        "regen_share_1km",
+        "regen_events_per_km",
+        "temperature_bucket"
+      ]
+    },
+    "error_analysis": {
+      "overall": {
+        "mae": 0.03866,
+        "rmse": 0.05111,
+        "bias": -0.00026,
+        "r2": 0.6759,
+        "n": 9098
+      },
+      "by_vehicle": {
+        "Dacia Spring": {
+          "mae": 0.03396,
+          "bias": -0.00254,
+          "n": 5218
+        },
+        "Nissan Leaf": {
+          "mae": 0.04499,
+          "bias": 0.00281,
+          "n": 3880
+        }
+      },
+      "residual_quantiles": {
+        "p5": -0.08239,
+        "p25": -0.02833,
+        "p50": -0.00582,
+        "p75": 0.03089,
+        "p95": 0.09563
+      },
+      "by_gradient_band": {
+        "(-99, -3]": {
+          "mae": 0.03562,
+          "n": 1011
+        },
+        "(-3, -1]": {
+          "mae": 0.03828,
+          "n": 526
+        },
+        "(-1, 1]": {
+          "mae": 0.0398,
+          "n": 6289
+        },
+        "(1, 3]": {
+          "mae": 0.03324,
+          "n": 495
+        },
+        "(3, 99]": {
+          "mae": 0.03712,
+          "n": 777
+        }
+      },
+      "by_next5km_gradient": {
+        "(-99, -3]": {
+          "mae": 0.04617,
+          "n": 358
+        },
+        "(-3, -1]": {
+          "mae": 0.0373,
+          "n": 1194
+        },
+        "(-1, 1]": {
+          "mae": 0.03701,
+          "n": 5339
+        },
+        "(1, 3]": {
+          "mae": 0.04,
+          "n": 1855
+        },
+        "(3, 99]": {
+          "mae": 0.05372,
+          "n": 352
+        }
+      },
+      "by_trip_phase": {
+        "(-0.1, 0.33]": {
+          "mae": 0.03498,
+          "n": 4331
+        },
+        "(0.33, 0.66]": {
+          "mae": 0.04225,
+          "n": 3076
+        },
+        "(0.66, 1.1]": {
+          "mae": 0.04156,
+          "n": 1691
+        }
+      },
+      "by_soc_band": {
+        "(-1, 30]": {
+          "mae": null,
+          "n": 0
+        },
+        "(30, 50]": {
+          "mae": 0.02939,
+          "n": 386
+        },
+        "(50, 70]": {
+          "mae": 0.03841,
+          "n": 1579
+        },
+        "(70, 100]": {
+          "mae": 0.03922,
+          "n": 7133
+        }
+      },
+      "worst_trips": {
+        "20230418_NISSAN_ANDOAIN_AZPEITIA_015": 0.05791,
+        "20230419_NISSAN_ANDOAIN_AZPEITIA_031": 0.05551,
+        "20230420_NISSAN_EIBAR_DONOSTIA_054": 0.05259,
+        "20230420_NISSAN_HERNANI_TOLOSA_042": 0.05233,
+        "20230419_NISSAN_HERNANI_TOLOSA_022": 0.05194,
+        "20230420_NISSAN_BILBAO_EIBAR_052": 0.05182
+      },
+      "target_decision": {
+        "recommendation": "KEEP 5km SOC target",
+        "rationale": "P2-P3: 10km target has lower MAE (0.0336 vs 0.0545) but at substantially lower coverage (61% vs 74.5%) and R2 is higher (+0.44 vs +0.38) under common features. With the P9-P13 look-ahead terrain features matched to the 5km horizon, the 5km target reaches R2=+0.67 on GroupKFold CV. Switching horizons would invalidate the carefully constructed look-ahead feature family (next_1/2/5km) and reduce coverage by 13 points. The power-integrated target (P2-P3) is Nissan-only and not comparable across vehicles. Therefore the production target remains target_future_energy_kwh_per_km (5km SOC-derived).",
+        "soc_5km_evidence": "R2 +0.67 with look-ahead terrain; coverage 74.5%",
+        "soc_10km_evidence": "R2 +0.44 common-only, higher MAE std; coverage 61%",
+        "power_integrated": "Nissan-only, not cross-vehicle comparable"
+      }
+    }
+  },
+  "conclusions": {
+    "model": "ExtraTreesRegressor (n_estimators=300, max_depth=10, min_samples_leaf=3)",
+    "features": "common + telemetry + look-ahead/new (103 numeric)",
+    "cv_mae": 0.03866,
+    "cv_rmse": 0.05111,
+    "cv_r2": 0.676,
+    "bias": -0.0003,
+    "vs_global_mean": "MAE 0.06560 -> 0.03866 (-41%)",
+    "ensemble_gain": "none (single ET best)",
+    "key_drivers": [
+      "look-ahead 1/2/5km terrain (static geography)",
+      "trip progress (distance/time since start)",
+      "altitude/gradient features"
+    ],
+    "missing_telemetry": "gated (NaN for Dacia, XGB/ET impute-safe)"
+  },
+  "next_steps": [
+    "Freeze the optimized ExtraTrees config",
+    "Train final model on train+validation",
+    "Evaluate ONCE on v2_test (the frozen test set)",
+    "Write final Step 8/9-style reports with the optimized model"
+  ]
+}

@@ -1,0 +1,214 @@
+{
+  "stability_ExtraTrees": {
+    "mae_mean": 0.04016,
+    "mae_std": 0.00096,
+    "mae_runs": [
+      0.03936,
+      0.0393,
+      0.03958,
+      0.04172,
+      0.04082
+    ],
+    "rmse_mean": 0.05272,
+    "r2_mean": 0.6551,
+    "r2_std": 0.0156
+  },
+  "stability_XGBoost": {
+    "mae_mean": 0.04147,
+    "mae_std": 0.00096,
+    "mae_runs": [
+      0.04119,
+      0.04003,
+      0.04105,
+      0.04239,
+      0.04269
+    ],
+    "rmse_mean": 0.05416,
+    "r2_mean": 0.6359,
+    "r2_std": 0.0163
+  },
+  "stability_RandomForest": {
+    "mae_mean": 0.04174,
+    "mae_std": 0.00041,
+    "mae_runs": [
+      0.04117,
+      0.04164,
+      0.04216,
+      0.04225,
+      0.04146
+    ],
+    "rmse_mean": 0.05639,
+    "r2_mean": 0.6053,
+    "r2_std": 0.0157
+  },
+  "single_ExtraTrees": {
+    "mae": 0.03866,
+    "rmse": 0.05111,
+    "r2": 0.6759
+  },
+  "single_XGBoost": {
+    "mae": 0.04015,
+    "rmse": 0.05298,
+    "r2": 0.6517
+  },
+  "avg_ET_XGB": {
+    "mae": 0.03881,
+    "rmse": 0.0513,
+    "r2": 0.6735
+  },
+  "avg_ET_XGB_RF": {
+    "mae": 0.03925,
+    "rmse": 0.05182,
+    "r2": 0.6668
+  },
+  "stacked_ridge_OOF": {
+    "mae": 0.03904,
+    "rmse": 0.0516,
+    "r2": 0.6696
+  },
+  "set_common_only": {
+    "mae_mean": 0.05298,
+    "mae_std": 0.0,
+    "mae_runs": [
+      0.05298
+    ],
+    "rmse_mean": 0.06836,
+    "r2_mean": 0.4203,
+    "r2_std": 0.0
+  },
+  "set_common_plus_new": {
+    "mae_mean": 0.03941,
+    "mae_std": 0.0,
+    "mae_runs": [
+      0.03941
+    ],
+    "rmse_mean": 0.05194,
+    "r2_mean": 0.6653,
+    "r2_std": 0.0
+  },
+  "set_common_plus_telemetry": {
+    "mae_mean": 0.05355,
+    "mae_std": 0.0,
+    "mae_runs": [
+      0.05355
+    ],
+    "rmse_mean": 0.06913,
+    "r2_mean": 0.4071,
+    "r2_std": 0.0
+  },
+  "set_full": {
+    "mae_mean": 0.03936,
+    "mae_std": 0.0,
+    "mae_runs": [
+      0.03936
+    ],
+    "rmse_mean": 0.0516,
+    "r2_mean": 0.6696,
+    "r2_std": 0.0
+  },
+  "final_feature_set": [
+    "current_soc_pct",
+    "current_altitude_m",
+    "current_gradient_pct",
+    "past_1km_gradient_pct",
+    "elevation_gain_100m",
+    "elevation_gain_500m",
+    "elevation_gain_1km",
+    "elevation_loss_100m",
+    "elevation_loss_500m",
+    "elevation_loss_1km",
+    "net_elevation_change_1km",
+    "mean_gradient_500m",
+    "mean_gradient_1km",
+    "gradient_std_500m",
+    "gradient_std_1km",
+    "max_uphill_gradient",
+    "max_downhill_gradient",
+    "terrain_variability",
+    "hillyness_score",
+    "uphill_fraction_1km",
+    "downhill_fraction_1km",
+    "flat_fraction_1km",
+    "terrain_transition_count_1km",
+    "gradient_direction_changes_1km",
+    "elevation_gain_rate",
+    "elevation_loss_rate",
+    "distance_since_trip_start_km",
+    "time_since_trip_start_min",
+    "trip_distance_so_far_km",
+    "trip_elapsed_time_min",
+    "hour_of_day",
+    "day_of_week",
+    "current_speed_kmh",
+    "mean_speed_500m",
+    "mean_speed_1km",
+    "speed_std_500m",
+    "speed_std_1km",
+    "min_speed_recent",
+    "max_speed_recent",
+    "high_speed_fraction",
+    "stopped_fraction",
+    "stop_count_recent",
+    "speed_change_recent",
+    "acceleration_mps2",
+    "mean_acceleration",
+    "std_acceleration",
+    "max_acceleration",
+    "min_acceleration",
+    "motor_power_kw",
+    "torque_nm",
+    "motor_rpm",
+    "mean_motor_power_500m",
+    "mean_motor_power_1km",
+    "max_motor_power_1km",
+    "positive_motor_power_fraction",
+    "power_variability",
+    "aux_power_kw",
+    "mean_aux_power_500m",
+    "mean_aux_power_1km",
+    "max_aux_power_1km",
+    "aux_power_variability",
+    "aux_energy_1km",
+    "regen_power_kw",
+    "mean_regen_power_500m",
+    "mean_regen_power_1km",
+    "max_regen_power_1km",
+    "regen_event_count_1km",
+    "regen_duration_estimate",
+    "regen_energy_recovered_1km",
+    "regen_fraction_of_driving_time",
+    "regen_intensity",
+    "current_temperature_c",
+    "temperature_recent_mean",
+    "speed_x_gradient",
+    "speed_squared",
+    "speed_x_temperature",
+    "hour_sin",
+    "hour_cos",
+    "trip_phase",
+    "next_1km_net_elev_m",
+    "next_1km_gradient_pct",
+    "next_1km_gain_m",
+    "next_1km_loss_m",
+    "next_2km_net_elev_m",
+    "next_2km_gradient_pct",
+    "next_2km_gain_m",
+    "next_2km_loss_m",
+    "next_5km_net_elev_m",
+    "next_5km_gradient_pct",
+    "next_5km_gain_m",
+    "next_5km_loss_m",
+    "next_5km_uphill_frac",
+    "next_5km_downhill_frac",
+    "next_5km_flat_frac",
+    "speed_p10",
+    "speed_p50",
+    "speed_p90",
+    "speed_iqr",
+    "mean_pos_accel",
+    "mean_neg_accel",
+    "regen_share_1km",
+    "regen_events_per_km",
+    "temperature_bucket"
+  ]
+}

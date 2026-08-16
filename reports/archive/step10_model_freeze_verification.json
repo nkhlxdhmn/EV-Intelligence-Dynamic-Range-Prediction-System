@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-08-16 11:48:37",
+  "model_path": "models\\ev_energy_extratrees_route_aware.joblib",
+  "preprocessor_path": "models\\final_preprocessor.joblib",
+  "feature_list_path": "models\\final_feature_list.json",
+  "model_type": "ExtraTreesRegressor",
+  "n_features_in_": 102,
+  "feature_count": 102,
+  "preprocessor_type": "SimpleImputer",
+  "params": {
+    "n_estimators": 300,
+    "max_depth": 10,
+    "min_samples_leaf": 3,
+    "random_state": 42
+  },
+  "param_match_expected": true,
+  "trip_phase_excluded": true,
+  "errors": [],
+  "freeze_verified": true
+}
