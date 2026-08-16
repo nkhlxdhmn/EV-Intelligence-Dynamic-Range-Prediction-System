@@ -1,3 +1,0 @@
-pandas == 2.2.2
-matplotlib == 3.8.0
-pyarrow == 21.0.0
