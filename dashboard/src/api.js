@@ -4,11 +4,13 @@ export const API = {
   health: "/health",
   info: "/model/info",
   predict: "/predict",
+  // Backend physics simulator (STEP 16) — drives demo mode.
+  simulatorReset: "/simulator/reset",
+  simulatorStep: "/simulator/step",
   // Live telemetry endpoints (STEP 15)
   liveStatus: "/live/status",
   liveTelemetry: "/live/telemetry",
-  liveConnect: "/live/connect",
-  liveDisconnect: "/live/disconnect",
+  livePrediction: "/live/prediction",
 };
 
 export async function fetchHealth() {
@@ -74,51 +76,65 @@ export async function fetchLiveTelemetry() {
   }
 }
 
-export async function postLiveConnect(provider = "obd_ii", format_type = "json", config = null) {
-  try {
-    const r = await fetch(API.liveConnect, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ provider, format_type, config }),
-    });
-    if (!r.ok) {
-      let detail = `Connection failed (${r.status})`;
-      try {
-        const err = await r.json();
-        if (err && (err.detail || err.message)) {
-          detail = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
-        }
-      } catch {
-        /* ignore parse errors */
+// Live route-aware prediction from the connected telemetry source.
+// The endpoint reads its own telemetry; no payload body is required.
+export async function fetchLivePrediction() {
+  const r = await fetch(API.livePrediction, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!r.ok) {
+    let detail = `Live prediction failed (${r.status})`;
+    try {
+      const err = await r.json();
+      if (err && (err.detail || err.message)) {
+        detail = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
       }
-      throw new Error(detail);
+    } catch {
+      /* ignore parse errors */
     }
-    return await r.json();
-  } catch (e) {
-    throw new Error(e.message || "Failed to connect to telemetry");
+    throw new Error(detail);
   }
+  return r.json();
 }
 
-export async function postLiveDisconnect() {
-  try {
-    const r = await fetch(API.liveDisconnect, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    if (!r.ok) {
-      let detail = `Disconnection failed (${r.status})`;
-      try {
-        const err = await r.json();
-        if (err && (err.detail || err.message)) {
-          detail = typeof err.detail === "string" ? err.detail : JSON.stringify(err.detail);
-        }
-      } catch {
-        /* ignore parse errors */
-      }
-      throw new Error(detail);
+// ---- Backend physics simulator (demo mode) ---------------------------------
+
+export async function postSimulatorReset(seed = 1, nSteps = 2) {
+  const qs = new URLSearchParams({ seed: String(seed), n_steps: String(nSteps) });
+  const r = await fetch(`${API.simulatorReset}?${qs}`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+  });
+  if (!r.ok) {
+    let detail = `Simulator reset failed (${r.status})`;
+    try {
+      const err = await r.json();
+      if (err && (err.detail || err.message)) detail = err.detail;
+    } catch {
+      /* ignore parse errors */
     }
-    return await r.json();
-  } catch (e) {
-    throw new Error(e.message || "Failed to disconnect telemetry");
+    throw new Error(detail);
   }
+  return r.json();
+}
+
+export async function postSimulatorStep(nSteps = 4) {
+  const qs = new URLSearchParams({ n_steps: String(nSteps) });
+  const r = await fetch(`${API.simulatorStep}?${qs}`, {
+    method: "POST",
+    headers: { Accept: "application/json" },
+  });
+  if (!r.ok) {
+    let detail = `Simulator step failed (${r.status})`;
+    try {
+      const err = await r.json();
+      if (err && (err.detail || err.message)) detail = err.detail;
+    } catch {
+      /* ignore parse errors */
+    }
+    throw new Error(detail);
+  }
+  return r.json();
 }

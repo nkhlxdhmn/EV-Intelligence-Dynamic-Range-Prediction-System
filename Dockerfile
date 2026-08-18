@@ -26,9 +26,7 @@ COPY requirements.inference.txt /app/requirements.inference.txt
 RUN pip install --no-cache-dir -r /app/requirements.inference.txt
 
 # ---- copy application code and frozen artifacts ---------------------------
-COPY src/inference /app/src/inference
-COPY src/telemetry /app/src/telemetry
-COPY src/data/devrt_parser.py /app/src/data/devrt_parser.py
+COPY src /app/src
 COPY scripts/comprehensive_feature_engineering.py /app/scripts/comprehensive_feature_engineering.py
 COPY api /app/api
 COPY models /app/models

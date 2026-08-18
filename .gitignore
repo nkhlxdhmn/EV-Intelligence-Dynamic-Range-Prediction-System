@@ -38,6 +38,7 @@ logs/
 # Node / React frontend (build artifacts are never committed; run `npm run build`)
 dashboard/node_modules/
 dashboard/dist/
+dashboard/.smoke-out/
 
 # Generated intermediate and processed data
 /data/

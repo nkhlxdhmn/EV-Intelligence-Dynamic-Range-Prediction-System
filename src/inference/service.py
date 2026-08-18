@@ -72,7 +72,7 @@ from src.inference.inference_logger import InferenceLogger
 from src.inference.model_metadata import MODEL_VERSION, load_model_metadata
 from src.inference.range_estimator import RangeEstimator
 from src.inference.schemas import PredictionRequest, PredictionResponse
-from src.monitoring.ood import assess_ood, assess_ood_from_snapshot
+from src.monitoring.ood import assess_ood_from_snapshot
 from src.monitoring.sensor_quality import assess_complete_telemetry_quality
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -185,7 +185,7 @@ def compute_confidence_score(
     missing_contribution = missing_feature_fraction  # 0.0 to 1.0
 
     # Route availability contribution
-    route_contribution = 0.0 if not route_available else 0.0
+    route_contribution = 0.0
     if not route_available:
         route_contribution = 0.4  # significant reduction
     elif not route_terrain_available:
@@ -233,31 +233,7 @@ def assess_ood_from_request(request: PredictionRequest) -> dict[str, Any]:
 
     Uses the monitoring OOD assessor on the most important production features.
     """
-    snap = request.telemetry.model_dump()
-
-    # Extract features for OOD assessment
-    feature_values: dict[str, float] = {}
-
-    if hasattr(snap, 'get'):
-        # Pydantic model dump may be dict-like
-        for key in ["soc_pct", "speed_kmh", "altitude_m", "ambient_temperature_c",
-                     "current_gradient_pct", "distance_since_trip_start_km"]:
-            if key in snap and snap[key] is not None:
-                feature_values[key] = float(snap[key])
-
-    if feature_values:
-        result = assess_ood(feature_values)
-    else:
-        # No features available; assume normal
-        result = {
-            "ood": False,
-            "severity": "normal",
-            "score": 0.0,
-            "violations": [],
-            "message": "Insufficient features to assess OOD; assuming normal distribution.",
-        }
-
-    return result
+    return assess_ood_from_snapshot(request.telemetry.model_dump())
 
 
 # ---------------------------------------------------------------------------
@@ -315,6 +291,19 @@ class PredictionService:
         self.feature_builder = FeatureBuilder(self.models_dir)
         self.range_estimator = RangeEstimator(reserve_soc_pct=self.reserve_soc_pct)
 
+        # Frozen TRAIN+VAL residual quantiles (read-only metadata, test never
+        # involved). Used for the conservative/expected/optimistic range band.
+        from src.inference.predictor import load_residual_quantiles
+        try:
+            _q = load_residual_quantiles()
+            self._residual_q_low = float(_q["q10"])
+            self._residual_q_high = float(_q["q90"])
+        except Exception:
+            # Fall back to the documented Step 9 constants if the report file
+            # is unavailable; values are identical to STEP9_QUANTILES.
+            self._residual_q_low = float(STEP9_QUANTILES["q10"])
+            self._residual_q_high = float(STEP9_QUANTILES["q90"])
+
     # ------------------------------------------------------------------ info
     def health(self) -> dict:
         return {
@@ -364,6 +353,8 @@ class PredictionService:
         """
         try:
             return self._predict_with_status(request, ilog)
+        except TerrainUnavailableError:
+            raise  # input-contract error: propagate to the caller
         except InferenceError as e:
             ilog.log_failure(e.code, e.message)
             from src.inference.service import PredictionStatus
@@ -408,25 +399,39 @@ class PredictionService:
         # ---- Determine initial status based on input availability ------------
         status = PredictionStatus.OK
 
-        # Check if route terrain is available (required for route-aware mode)
-        if request.route_terrain is None or not request.route_terrain.points:
-            status = PredictionStatus.INSUFFICIENT_DATA
-
-        # Check if terrain provider is available but unimplemented (real DEM not connected)
-        if status != PredictionStatus.INSUFFICIENT_DATA and self.terrain_provider is not None:
+        # Resolve route terrain (required for route-aware mode). A missing
+        # route is an input-contract failure, not a silent fallback to fake
+        # terrain: raise TerrainUnavailableError so the caller can decide.
+        if self.terrain_provider is not None:
+            # A real provider (GPS/DEM) is authoritative when connected.
             try:
                 terrain = self.terrain_provider.get_upcoming_terrain(
                     snap["distance_since_trip_start_km"], snap["altitude_m"])
+                if terrain is None or len(terrain.offsets_km) == 0:
+                    raise TerrainUnavailableError(
+                        "EMPTY_TERRAIN",
+                        "terrain provider returned no upcoming terrain")
             except NotImplementedError:
-                status = PredictionStatus.DEGRADED  # terrain available but not real
+                status = PredictionStatus.DEGRADED  # provider w/o DEM backend
+                terrain = None
+            except TerrainUnavailableError:
+                raise
             except Exception:
                 status = PredictionStatus.INSUFFICIENT_DATA
-        elif status != PredictionStatus.INSUFFICIENT_DATA:
-            # Use validated route terrain from request body
+                terrain = None
+        elif request.route_terrain is not None and request.route_terrain.points:
+            # No provider: use validated route terrain from the request body.
             try:
                 terrain = self._resolve_terrain(request)
             except TerrainUnavailableError:
+                raise
+            except Exception:
                 status = PredictionStatus.INSUFFICIENT_DATA
+                terrain = None
+        else:
+            raise TerrainUnavailableError(
+                "ROUTE_TERRAIN_UNAVAILABLE",
+                "route terrain is required for route-aware prediction")
 
         # ---- Feature building ------------------------------------------------
         past = None
@@ -482,7 +487,14 @@ class PredictionService:
                 "optimistic_range_km": None,
             }
         else:
-            r = self.range_estimator.estimate_range(capacity, soc, pred)
+            # Use the train+val residual-quantile band so the conservative /
+            # expected / optimistic ranges differ (F8.1). The frozen quantiles
+            # are loaded once at startup and never touch test data.
+            r = self.range_estimator.estimate_range_band(
+                capacity, soc, pred,
+                residual_q_low=self._residual_q_low,
+                residual_q_high=self._residual_q_high,
+            )
 
         # ---- OOD assessment -----------------------------------------------
         ood_result = assess_ood_from_request(request)

@@ -1,8 +1,0 @@
-TUM exact external validation: BLOCKED
-TUM physical validation: LIMITED (correlation analysis only, not model validation)
-Distance: UNAVAILABLE (value_id 1299 absent from parquet)
-Energy target: UNAVAILABLE (no 5-km target constructible from TUM data)
-Compatible feature count: 4
-Missing feature count: 72 (of 102; per Step 12 analysis)
-Peak RAM: 342 MB
-Tests: 180 passed

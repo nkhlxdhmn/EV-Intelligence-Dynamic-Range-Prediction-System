@@ -118,15 +118,30 @@ class RollingFileRecorder:
 
     def _initialize_file(self) -> None:
         """Create a new Parquet file for recording."""
-        # Close the previous file if it exists and has data
-        if self._current_file is not None and self._current_size > 0:
-            # Flush any remaining batch
+        # Flush any remaining batch to the current file before closing it
+        if self._current_file is not None and self._batch:
             self._flush_batch(force=True)
 
-        # Generate a new filename with timestamp
+        # Close the previous writer (if any) so the Parquet footer is written
+        # and the file handle is released before opening a new one (F1.1b).
+        writer = getattr(self, "_writer", None)
+        if writer is not None:
+            try:
+                writer.close()
+            except Exception as e:
+                print(f"Recorder close error: {e}")
+            self._writer = None
+
+        # Generate a new filename with timestamp; a counter suffix guarantees
+        # uniqueness so a rollover within the same second cannot silently
+        # overwrite the previous file (audit finding F1.1c).
         import datetime
-        ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self._current_file = self._directory / f"telemetry_{ts}.parquet"
+        base_ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        self._current_file = self._directory / f"telemetry_{base_ts}.parquet"
+        counter = 1
+        while self._current_file.exists():
+            self._current_file = self._directory / f"telemetry_{base_ts}_{counter}.parquet"
+            counter += 1
 
         # Initialize the Parquet writer
         self._writer = pq.ParquetWriter(
@@ -156,27 +171,34 @@ class RollingFileRecorder:
 
         try:
             # Convert batch to PyArrow tables
-            # Each batch entry: {"timestamp": float, "signals": str, "qualities": str}
+            # Each batch entry: {"timestamp": float, "signals": str,
+            #                    "qualities": str, "source": str}
+            # The table must match DEFAULT_SCHEMA (incl. the source column),
+            # otherwise ParquetWriter rejects every write (F1.1c).
             timestamps = pa.array([entry["timestamp"] for entry in self._batch], type=pa.float64())
             signal_jsons = pa.array([entry["signals"] for entry in self._batch], type=pa.string())
             quality_jsons = pa.array([entry["qualities"] for entry in self._batch], type=pa.string())
+            source_jsons = pa.array(
+                [entry.get("source") or "" for entry in self._batch], type=pa.string())
 
             table = pa.table({
                 "timestamp": timestamps,
                 "signals": signal_jsons,
                 "qualities": quality_jsons,
+                "source": source_jsons,
             })
 
             self._writer.write_table(table)
             self._current_size += sum(
                 len(json.dumps(entry)) for entry in self._batch
             )
-        except Exception as e:
-            # In production, this would go to a proper logger
-            print(f"Recorder write error: {e}")
-        finally:
             self._batch = []
             self._sample_count = 0
+        except Exception as e:
+            # Do NOT clear the batch here: clearing on error silently discards
+            # telemetry. Keep the batch so the caller can retry/diagnose.
+            print(f"Recorder write error: {e}")
+            raise
 
     # ------------------------------------------------------------------
     # Public API: insert
@@ -220,6 +242,7 @@ class RollingFileRecorder:
             "timestamp": timestamp,
             "signals": signals_json,
             "qualities": qualities_json,
+            "source": sample_source,
         })
         self._sample_count += 1
 
@@ -231,8 +254,8 @@ class RollingFileRecorder:
             or (self._current_file is not None and self._current_size + len(json.dumps(self._batch[-1])) >= self._max_file_size)
         ):
             self._flush_batch()
-            if not force and self._current_file is not None and self._current_size >= self._max_file_size:
-                # Rollover: start a new file
+            if self._current_file is not None and self._current_size >= self._max_file_size:
+                # Rollover: start a new file (F1.1: 'force' was undefined here)
                 self._initialize_file()
 
     # ------------------------------------------------------------------

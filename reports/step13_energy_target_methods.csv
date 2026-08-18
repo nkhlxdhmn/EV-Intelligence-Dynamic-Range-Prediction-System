@@ -1,7 +1,0 @@
-method,required_signals,signals_available,distance_available,energy_available,target_constructible,confidence,reason
-A. SOC-drop based energy/km,soc_pct,decreasing distance,hv_soc (900) YES, but distance NO,"NO",LOW,"SOC present (value_id 900) but distance (1299) absent; cannot compute ΔE/Δx without distance"
-B. Battery-power integration,power_kw = V × I, V=1200 (hv_battery_voltage), I=traction battery current NO,"NO",LOW,"Power = V × I but traction battery current unavailable; value_id 1205 = PTC1 current ≠ traction battery current"
-C. Battery-current × voltage integration,same as B, same as B, NO,NO,LOW,"same as B — current unavailable; cannot integrate ∫ V·I dt without I"
-D. C-rate × battery capacity,c_rate, battery_capacity_kwh,N/A NO,"NO",LOW,"C-rate unavailable in TUM; battery capacity known from DEVRT (33/58 kWh) but not in TUM signal catalog"
-E. Odometer/distance based consumption,distance_km,de traveled_distance NO,"NO",LOW,"Distance (1299) absent from all TUM parquet; odometer not in UDS data"
-F. Trip-level energy consumption,total_energy,total_distance NO,NO,LOW,"Both total energy and total distance unavailable; cannot compute mean consumption per km"

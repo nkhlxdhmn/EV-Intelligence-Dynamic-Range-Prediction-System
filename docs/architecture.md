@@ -1,143 +1,117 @@
 # Technical Architecture
 
-This document describes the end-to-end architecture of the EV Energy
-Consumption & Dynamic Range Prediction System, from raw telemetry to the
-live dashboard.
+This document describes the architecture of the EV Energy Consumption &
+Dynamic Range Prediction System: a single frozen ML pipeline wrapped in a
+FastAPI inference service, with a physics simulator for demo mode and an
+optional LIVE telemetry layer.
 
 ## 1. System overview
 
-The system is a single, frozen ML pipeline wrapped in a FastAPI service:
-
 ```
-Telemetry (DEVRT / TUM / JAC raw files)
-    ↓
-PyArrow streaming (memory-safe, one file/vehicle at a time)
-    ↓
-Standardization (configs/schema.yaml)
-    ↓
-Feature Engineering (102 route-aware causal features)
-    ↓
-Causal Feature Audit (trip_phase removed)
-    ↓
-Route-aware Feature Set
-    ↓
-ExtraTreesRegressor (frozen)
-    ↓
-Energy Consumption Prediction (kWh/km over 5 km)
-    ↓
-Range Estimator (usable energy ÷ consumption, reserve, band)
-    ↓
-FastAPI (/health, /model/info, /predict)
-    ↓
-Dashboard (frontend/, DEMO + optional LIVE)
+Telemetry (SIMULATOR or LIVE source) + route terrain
+        ↓
+FastAPI (/health, /model/info, /predict, /live/*, /simulator/*)
+        ↓
+Schema validation (pydantic, payload-size limit)
+        ↓
+Feature Builder (102 route-aware causal features)
+        ↓
+Frozen preprocessor (median imputation) + ExtraTreesRegressor
+        ↓
+Energy consumption prediction (kWh/km over 5 km)
+        ↓
+Range estimator (usable energy ÷ consumption, reserve, band)
+        ↓
+Dashboard (SIMULATOR + optional LIVE) + inference audit log
 ```
 
 ```mermaid
 flowchart TD
-    A[Raw telemetry files] --> B[PyArrow streaming<br/>one file / vehicle at a time]
-    B --> C[Standardization<br/>configs/schema.yaml]
-    C --> D[Feature Engineering<br/>102 features]
-    D --> E[Causal Feature Audit<br/>trip_phase removed]
-    E --> F[Route-aware Feature Set<br/>87 onboard + 15 next_*]
-    F --> G[ExtraTreesRegressor<br/>frozen]
-    G --> H[Energy Prediction<br/>kWh/km @ 5 km]
-    H --> I[Range Estimator<br/>usable energy / consumption]
-    I --> J[FastAPI<br/>/health /model/info /predict]
-    J --> K[Dashboard<br/>frontend/ DEMO + LIVE]
+    S[Telemetry source] --> R[TelemetryReader<br/>quality assessment]
+    R --> B[RollingBuffer<br/>causal past window]
+    SIM[Physics simulator<br/>demo mode] --> R
+    B --> FB[Feature Builder<br/>102 features]
+    R --> FB
+    FB --> P[Preprocessor +<br/>ExtraTreesRegressor]
+    P --> RE[Range estimator<br/>conservative / expected / optimistic]
+    RE --> API[FastAPI<br/>/predict /live/* /simulator/*]
+    API --> D[Dashboard]
 ```
 
 ## 2. Modules
 
 | Layer | Location | Responsibility |
 |---|---|---|
-| Data parsing | `src/data/` | DEVRT/JAC/TUM parsers, split creation, TUM extraction |
-| Standardization | `configs/schema.yaml`, `src/data/schemas.py` | unified schema, unit normalization |
-| Feature engineering | `src/inference/feature_builder.py` | 102-feature builder (runtime + training) |
-| Causal audit | `src/analysis/step7_7_causal_audit.py` | leakage audit, feature causality |
-| Model | `src/models/train_final_model.py`, `models/` | frozen ExtraTrees + preprocessor |
-| Evaluation | `src/evaluation/` | leakage & split audits |
+| Inference service | `src/inference/service.py` | validate, build features, predict, log |
+| Feature builder | `src/inference/feature_builder.py` | 102-feature builder (runtime + training) |
+| Predictor | `src/inference/predictor.py` | model load, residual quantiles, preprocessor |
 | Range estimation | `src/inference/range_estimator.py` | usable energy, reserve, uncertainty band |
-| Inference service | `src/inference/service.py` | validation, feature build, predict, log |
+| Schemas | `src/inference/schemas.py` | pydantic request/response models |
 | API | `api/main.py` | FastAPI endpoints + static dashboard |
-| Dashboard | `frontend/` | real-time telemetry UI (DEMO + optional LIVE) |
+| Telemetry | `src/telemetry/` | adapters, reader, quality, buffer, normalizer, recorder |
+| Monitoring | `src/monitoring/` | OOD, drift, sensor-quality rules |
+| Simulator | `src/simulator/` | physics-based demo scenarios (labeled SIMULATOR) |
+| Model artifacts | `models/` | frozen model, preprocessor, feature list |
+| Training tooling | `scripts/comprehensive_feature_engineering.py`, `src/data/devrt_parser.py`, `src/models/train_final_model.py`, `src/evaluation/` | reproduce/verify the frozen model |
 
-## 3. Training pipeline
-
-```
-Parsed & standardized DEVRT
-    → feature engineering (102 features, trip-level)
-    → trip-level split (GroupKFold for selection; fixed holdout)
-    → median imputation (fit on TRAIN+VALIDATION only)
-    → ExtraTreesRegressor (random_state=42)
-    → one-time held-out test evaluation (marker-protected)
-    → freeze artifacts → models/
-```
-
-## 4. Inference pipeline (runtime)
+## 3. Inference pipeline (runtime)
 
 ```
 POST /predict
-  telemetry snapshot + route terrain
-    → schema validation (pydantic)
+  telemetry snapshot + route terrain (+ optional causal past window)
+    → schema validation (pydantic, numeric ranges, payload ≤ 1 MB)
     → feature builder (102 features)
-    → preprocessor (median imputation) + model
-    → predicted kWh/km
+    → frozen preprocessor (median imputation) + model
+    → predicted kWh/km (may be ≤ 0 on net-regen segments → range 0.0)
     → range estimator → conservative / expected / optimistic
-    → JSON response + audit log
+    → JSON response + audit log (request ID)
 ```
 
-If no route provider is connected, the API uses the validated request-body
-route terrain. The dashboard DEMO mode supplies a synthetic route provider
-(clearly labeled); LIVE mode requires a real telemetry source.
+No route provider connected? `/predict` uses the validated `route_terrain`
+from the request body. The dashboard SIMULATOR mode supplies a clearly-labeled
+synthetic route provider; LIVE mode requires real route/DEM elevation.
 
-## 5. Strict onboard alternative
+## 4. Simulator (demo)
 
-A strict onboard-only model — trained without the 15 `next_*` route-aware
-features — was evaluated for comparison. It performs **worse** on the held-out
-test (GroupKFold MAE ≈ 0.05518 vs 0.04002 kWh/km route-aware). The onboard set
-uses only signals available without any route/DEM knowledge:
+`src/simulator/` produces causally-correct demo telemetry:
 
-- Current speed, altitude, motor/torque/RPM, SOC, capacity, ambient
-  temperature, aux power, regen power, and past-window aggregates.
+- **Scenarios** (`scenario.py`) — seeded, deterministic route + driver profiles.
+- **Physics** (`physics.py`) — speed profiles with a creep floor and a
+  low-speed regenerative-braking fade (no regen below 8 km/h, full at
+  25 km/h), so SOC / energy behavior is realistic.
+- **Route** (`route.py`) — elevation profile with an ahead-horizon window for
+  the route-aware `next_*` features.
+- **Energy balance** — simulated consumption/regen is tracked and validated.
 
-This alternative is documented to make the route-aware dependency explicit:
-route/DEM elevation data must be available **before driving** for the best
-model to be valid.
+All simulator output is labeled `SIMULATOR` / `SIMULATOR_ROUTE` and is never
+presented as real vehicle data. See `reports/step16_simulator_validation.md`.
 
-```mermaid
-flowchart LR
-    subgraph RouteAware[Route-aware model - frozen]
-        R1[87 onboard features] --> R2[+ 15 next_* terrain features]
-    end
-    subgraph Strict[Strict onboard model - comparison only]
-        S1[87 onboard features only]
-    end
-    R2 --> R3[GroupKFold MAE 0.04002]
-    S1 --> S3[GroupKFold MAE 0.05518]
-```
+## 5. LIVE telemetry layer
 
-## 6. Memory-safe processing
+- **Adapters** (`src/telemetry/`) — OBD-II, CAN, and telematics sources behind
+  a common `TelemetrySource` interface. No fabricated values.
+- **Reader** (`reader.py`) — continuous, non-blocking sampling with per-signal
+  quality assessment (VALID / STALE / MISSING / INVALID / OUT_OF_RANGE /
+  UNAVAILABLE).
+- **Buffer** (`buffer.py`) — rolling causal past window for windowed features.
+- **Quality / normalizer** — range validation, unit normalization, staleness
+  rejection.
+- **Monitoring** (`src/monitoring/`) — OOD detection and PSI drift vs
+  train+validation reference statistics; sensor-quality rules.
 
-- **PyArrow** columnar I/O — parquet streamed in row groups instead of loading
-  whole CSVs.
-- **One file/vehicle at a time** — trips processed independently, bounded
-  working set.
-- **Garbage collection** — explicit `gc` + tracemalloc during bulk processing.
-- **No full TUM load** — the ~96 M-row TUM dataset is never fully loaded; peak
-  processing RAM was ~197 MB (`reports/step11_memory_report.json`).
+LIVE prediction requires `soc_pct` and `vehicle_speed_kmh` VALID and fresh
+plus route terrain; otherwise the API returns an explicit status rather than
+fabricating data.
 
-## 7. Deployment
+## 6. Data-flow guardrails
 
-- **Docker**: `Dockerfile` (python:3.12-slim, non-root `appuser`, healthcheck)
-  + `docker-compose.yml`. Runtime deps pinned in `requirements.inference.txt`.
-- **Local**: `uvicorn api.main:app --host 0.0.0.0 --port 8000`.
-- **Dashboard**: served by the API at `/dashboard/`; DEMO by default, LIVE
-  only with a real telemetry source (`?live=1&telemetry=...`).
-
-## 8. Data flow guardrails
-
-- **Leakage prevention**: trip-level splits, GroupKFold, future-target
-  separation, causal audit, `trip_phase` removal.
-- **No secrets**: API config is environment-driven, no hardcoded credentials.
-- **No raw datasets in Docker**: images copy only `src/`, `api/`, `models/`,
-  `frontend/` and requirements; raw telemetry stays on disk outside the image.
+- **Leakage prevention** — trip-level splits, GroupKFold, future-target
+  separation, causal feature audit, `trip_phase` removed.
+- **No fabricated data** — SIMULATOR data is labeled; LIVE data is real or
+  reported offline; terrain is real or unavailable.
+- **No secrets** — environment-driven config only.
+- **Runtime images** ship only `src/`, `api/`, `scripts/`, `models/`, and the
+  dashboard bundle; raw datasets stay local.
+- **Frozen artifacts** — SHA-256 of model, preprocessor, and feature list are
+  recorded and re-verified (`reports/step13_model_integrity.json`,
+  `reports/step16_final_integrity.json`).

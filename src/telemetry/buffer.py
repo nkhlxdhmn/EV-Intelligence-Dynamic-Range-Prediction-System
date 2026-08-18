@@ -67,15 +67,16 @@ class RollingBuffer:
         signals : dict[str, Any]
             Signal name -> value mapping for this timestamp.
         """
-        # Enforce timestamp ordering: new samples should have
-        # timestamp >= the most recent sample's timestamp
-        if self._buffer and timestamp < self._buffer[-1][0]:
-            # Out-of-order timestamp; still insert but note it
-            pass
-
-        # Insert the sample
+        # Enforce timestamp ordering: the buffer stays sorted by timestamp
+        # (oldest at the left, newest at the right) so get_latest() always
+        # returns the sample with the newest timestamp (F1.2). Out-of-order
+        # samples are inserted at their sorted position instead of appended.
         entry = (timestamp, dict(signals))  # copy to avoid mutability issues
-        self._buffer.append(entry)
+        if self._buffer and timestamp < self._buffer[-1][0]:
+            self._buffer.append(entry)
+            self._buffer = deque(sorted(self._buffer, key=lambda e: e[0]))
+        else:
+            self._buffer.append(entry)
         self._insertion_count += 1
 
         # Track signal indices for quick lookup

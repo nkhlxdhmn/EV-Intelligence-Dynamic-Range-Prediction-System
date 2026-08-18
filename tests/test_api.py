@@ -214,3 +214,178 @@ def test_live_connect_disconnect_concurrent(client):
 
     r = client.get("/live/status")
     assert r.status_code == 200
+
+
+def test_live_prediction_end_to_end(client, monkeypatch):
+    """/live/prediction builds a real prediction from real (sim) telemetry.
+
+    The provider is honestly labeled SIMULATOR; the endpoint must consume the
+    reader's latest signals (no fabrication) and produce a real model output.
+    """
+    import time
+
+    import numpy as np
+
+    from api.main import AppState
+    from src.inference.feature_builder import RouteTerrain, RouteTerrainProvider
+    from src.inference.service import PredictionService
+    from src.simulator.scenario import random_scenario
+    from src.simulator.simulator import SimulationEngine
+    from src.telemetry.base import TelemetrySignal
+    from src.telemetry.buffer import RollingBuffer
+    from src.telemetry.reader import TelemetryReader
+
+    class _SimSource:
+        """Adapters a SimulationEngine as a (honestly labeled) telemetry source."""
+
+        def __init__(self, sim):
+            self.sim = sim
+            self._connected = False
+
+        def connect(self):
+            self._connected = True
+            return True
+
+        def disconnect(self):
+            self._connected = False
+
+        def read(self):
+            if not self._connected:
+                return None
+            snap = self.sim.snapshot()
+            self.sim.step()
+            now = time.time()
+            return [
+                TelemetrySignal("soc_pct", snap["soc_pct"], "%", now),
+                TelemetrySignal("vehicle_speed_kmh", snap["speed_kmh"], "km/h", now),
+                TelemetrySignal("altitude_m", snap["altitude_m"], "m", now),
+                TelemetrySignal("ambient_temperature_c",
+                                snap["ambient_temperature_c"], "C", now),
+                TelemetrySignal("distance_since_trip_start_km",
+                                snap["distance_since_trip_start_km"], "km", now),
+                TelemetrySignal("time_since_trip_start_min",
+                                snap["time_since_trip_start_min"], "min", now),
+            ]
+
+        def health(self):
+            return {"connected": self._connected, "provider": "SIMULATOR"}
+
+        def available_signals(self):
+            return ["soc_pct", "vehicle_speed_kmh", "altitude_m",
+                    "ambient_temperature_c", "distance_since_trip_start_km",
+                    "time_since_trip_start_min"]
+
+    class FakeTerrain(RouteTerrainProvider):
+        def get_upcoming_terrain(self, d, a, lookahead_km=5.0):
+            offs = np.linspace(0, lookahead_km, 51)
+            alts = np.full(51, float(a)) + 5.0 * np.sin(offs * 3.0)
+            return RouteTerrain(offs, alts, source="DEM_TEST")
+
+    # Provider-backed service so the endpoint is route-aware.
+    svc = PredictionService(terrain_provider=FakeTerrain())
+    monkeypatch.setattr(AppState, "service", svc)
+
+    scenario = random_scenario(seed=7)
+    sim = SimulationEngine(scenario)
+    sim.step()
+
+    buffer = RollingBuffer(max_samples=200)
+    reader = TelemetryReader(_SimSource(sim), buffer, interval_s=60.0)
+    reader.source.connect()
+    reader.read_once()
+    reader.read_once()  # two real samples -> latest + causal history
+
+    client.post("/live/disconnect")
+    AppState.telemetry_reader = reader
+    AppState.telemetry_source = reader.source
+    AppState.telemetry_buffer = buffer
+
+    r = client.post("/live/prediction")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["available"] is True, body
+    pred = body["prediction"]
+    assert pred["predicted_energy_kwh_per_km"] > 0
+    assert pred["expected_range_km"] > 0
+    assert body["provenance"]["source"] == "LIVE"
+    assert body["provenance"]["provider"] == "SIMULATOR"
+    assert body["status"] in ("OK", "DEGRADED")
+
+
+def test_live_prediction_after_disconnect(client, monkeypatch):
+    """/live/prediction is OFFLINE (not fabricated) after disconnect."""
+    client.post("/live/disconnect")
+    r = client.post("/live/prediction")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["available"] is False
+    assert body["status"] == "OFFLINE"
+
+
+# ---- STEP 16 simulator demo endpoints ---------------------------------------
+
+def test_simulator_reset_and_step(client):
+    """Simulator reset returns a labeled SIMULATOR payload; step advances."""
+    from api.main import AppState
+
+    AppState.simulator_engine = None
+    AppState.simulator_seed = None
+
+    r = client.post("/simulator/reset", params={"seed": 42})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["simulator"] is True
+    assert body["source"] == "SIMULATOR"
+    assert body["telemetry"]["soc_pct"] > 0
+    assert body["route_terrain"]["source"] == "SIMULATOR_ROUTE"
+    d0 = body["telemetry"]["distance_since_trip_start_km"]
+
+    r = client.post("/simulator/step", params={"n_steps": 10})
+    assert r.status_code == 200
+    d1 = r.json()["telemetry"]["distance_since_trip_start_km"]
+    assert d1 > d0
+
+
+def test_simulator_deterministic_same_seed(client):
+    """Same seed -> same scenario_id and identical initial state."""
+    from api.main import AppState
+
+    AppState.simulator_engine = None
+    AppState.simulator_seed = None
+    a = client.post("/simulator/reset", params={"seed": 7}).json()
+    AppState.simulator_engine = None
+    AppState.simulator_seed = None
+    b = client.post("/simulator/reset", params={"seed": 7}).json()
+    assert a["scenario_id"] == b["scenario_id"]
+    assert a["telemetry"]["distance_since_trip_start_km"] == \
+        b["telemetry"]["distance_since_trip_start_km"]
+
+
+def test_simulator_predict_roundtrip(client):
+    """A simulator snapshot + terrain predicts through /predict (demo path)."""
+    from api.main import AppState
+
+    AppState.simulator_engine = None
+    AppState.simulator_seed = None
+    s = client.post("/simulator/reset", params={"seed": 3, "n_steps": 4}).json()
+    payload = {
+        "telemetry": s["telemetry"],
+        "route_terrain": s["route_terrain"],
+        "reserve_soc_pct": 10.0,
+    }
+    r = client.post("/predict", json=payload)
+    assert r.status_code == 200
+    pred = r.json()
+    assert pred["predicted_energy_kwh_per_km"] > 0
+    assert pred["expected_range_km"] > 0
+    assert pred["status"] in ("OK", "DEGRADED")
+
+
+def test_simulator_invalid_params(client):
+    """Invalid simulator parameters return HTTP 400."""
+    r = client.post("/simulator/reset", params={"seed": -1})
+    assert r.status_code == 400
+    r = client.post("/simulator/step", params={"n_steps": 0})
+    assert r.status_code == 400
+    r = client.post("/simulator/step", params={"n_steps": 500})
+    assert r.status_code == 400

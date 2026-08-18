@@ -210,17 +210,33 @@ def assess_ood_from_snapshot(
 
     Pulls the most important production features and runs the OOD assessor.
     """
-    # Extract the key features we can monitor
+    # Raw telemetry keys -> boundary keys used in FEATURE_PERCENTILE_BOUNDS.
+    # Without this translation the SOC/speed/altitude/temperature checks were
+    # silently skipped because the names never matched the bounds (F8.3).
+    _translation = {
+        "soc_pct": "current_soc_pct",
+        "speed_kmh": "current_speed_kmh",
+        "altitude_m": "current_altitude_m",
+        "ambient_temperature_c": "current_temperature_c",
+    }
+
     feature_values: dict[str, float] = {}
 
-    # Core telemetry
-    for key in ["soc_pct", "speed_kmh", "altitude_m", "ambient_temperature_c"]:
-        if key in snapshot:
-            feature_values[key] = float(snapshot[key])
+    # Core telemetry (translate raw names to boundary names)
+    for key, bound_key in _translation.items():
+        if key in snapshot and snapshot[key] is not None:
+            try:
+                feature_values[bound_key] = float(snapshot[key])
+            except (TypeError, ValueError):
+                continue
 
-    # Derived / route features
-    for key in ["current_gradient_pct", "distance_since_trip_start_km"]:
-        if key in snapshot:
-            feature_values[key] = float(snapshot[key])
+    # Derived / route features (already boundary-keyed)
+    for key in ["current_gradient_pct", "distance_since_trip_start_km",
+                "battery_capacity_kwh"]:
+        if key in snapshot and snapshot[key] is not None:
+            try:
+                feature_values[key] = float(snapshot[key])
+            except (TypeError, ValueError):
+                continue
 
     return assess_ood(feature_values, percentile_bounds)

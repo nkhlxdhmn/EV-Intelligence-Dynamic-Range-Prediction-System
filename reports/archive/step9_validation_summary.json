@@ -1,9 +1,0 @@
-{
-  "validation_global_mean_baseline_MAE": 0.07252172637234382,
-  "validation_vehicle_mean_baseline_MAE": 0.07197277332760876,
-  "validation_xgboost_MAE": 0.0628782719482106,
-  "validation_xgboost_R2": 0.25700635662020077,
-  "validation_negative_target_count": 53,
-  "peak_ram_mb": 88.2072925567627,
-  "runtime_s": 5.5038862228393555
-}

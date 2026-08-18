@@ -172,6 +172,7 @@ class PredictionResponse(BaseModel):
     sensor_quality: str = "good"
     model_version: str = MODEL_VERSION
     route_terrain_source: str
+    status: str = "OK"  # OK | DEGRADED | INSUFFICIENT_DATA | OFFLINE
 
 
 class ModelInfoResponse(BaseModel):

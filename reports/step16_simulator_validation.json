@@ -1,0 +1,114 @@
+{
+  "step": "16",
+  "title": "STEP 16 - 50-scenario simulator validation via real /predict",
+  "model_sha256": "27a0b7ab8a7fd5bc42ba2ac04d73be772880cdf2a64897108e343a57c6841319",
+  "model_unchanged": true,
+  "expected_model_sha256": "27a0b7ab8a7fd5bc42ba2ac04d73be772880cdf2a64897108e343a57c6841319",
+  "n_scenarios": 50,
+  "checkpoints_per_scenario": 6,
+  "total_predictions": 300,
+  "predictions_passed": 300,
+  "predictions_failed": 0,
+  "validation_status": "all_passed",
+  "status_counts": {
+    "OK": 300
+  },
+  "unique_scenario_ids": 50,
+  "nonpos_instants_kwh_le_0": 11,
+  "nonpos_share": 0.036667,
+  "energy_kwh_per_km": {
+    "min": -0.191966,
+    "max": 0.378674,
+    "mean": 0.149277
+  },
+  "expected_range_km": {
+    "min": 0.0,
+    "max": 78340.26,
+    "mean": 534.9
+  },
+  "determinism": {
+    "same_seed_within_1e-9": true,
+    "seed_0_trials_kwh_per_km": [
+      0.15324164847958222,
+      0.15324164847958222
+    ]
+  },
+  "http_predict_subset": {
+    "n_checked": 10,
+    "all_ok": true,
+    "results": [
+      {
+        "seed": 0,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.0493550233069455
+      },
+      {
+        "seed": 1,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.13565548171961375
+      },
+      {
+        "seed": 2,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.14389690029146077
+      },
+      {
+        "seed": 3,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.1442801326091375
+      },
+      {
+        "seed": 4,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.1548998797804106
+      },
+      {
+        "seed": 5,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.2067975565081194
+      },
+      {
+        "seed": 6,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.14346859799645023
+      },
+      {
+        "seed": 7,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.13390873639090423
+      },
+      {
+        "seed": 8,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.14962041028919723
+      },
+      {
+        "seed": 9,
+        "http_status": 200,
+        "ok": true,
+        "status": "OK",
+        "kwh_per_km": 0.21722502489285891
+      }
+    ]
+  },
+  "violations": [],
+  "n_violations_reported": 0
+}

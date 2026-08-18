@@ -1,5 +1,0 @@
-method,soc_resolution,soc_sampling_interval,soc_repeated_values,soc_quantization,soc_monotonic_decrease,target_constructible,reason
-A. SOC-drop per 5 km,5 seconds,5 s,observed during charging periods (SOC increases),1% bins,NO,"SOC (hv_soc, value_id 900) present but distance (1299) absent; cannot normalize ΔSOC to kWh/km without distance"
-B. SOC-drop per trip,5 seconds,trip duration,observed during charging (SOC increases) + discharging (SOC decreases),1% bins,NO,"Total SOC change over entire trip; cannot map to per-5-km target; trip distance also unavailable"
-C. SOC × voltage integration,same SOC resolution,same sampling,V × I requires current NO,NO,"Neither SOC nor voltage alone suffices; current (I) unavailable makes ∫ V·dSOC impossible without I/distance"
-D. C-rate adjusted SOC drop,same SOC, same sampling, same repeated values, same quantization, NO,"C-rate (1288) unavailable; cannot adjust SOC drop for battery capacity without c-rate"

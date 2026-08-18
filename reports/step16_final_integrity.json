@@ -1,0 +1,67 @@
+{
+  "step": "16F",
+  "date": "2026-08-18",
+  "title": "STEP 16F - Final ML integrity report (6-prompt engineering batch)",
+  "scope": "Verifies that the frozen ML artifacts were never modified during the 6-prompt batch (repo audit, physics simulator, LIVE telemetry, dashboard redesign, 50-scenario validation, final cleanup) and records the final repository state.",
+  "method": "sha256 over each artifact; no training, no evaluation, no model reload, no re-split performed in this batch.",
+  "artifacts": [
+    {
+      "path": "models/ev_energy_extratrees_route_aware.joblib",
+      "sha256": "27a0b7ab8a7fd5bc42ba2ac04d73be772880cdf2a64897108e343a57c6841319",
+      "matches_step13_record": true
+    },
+    {
+      "path": "models/final_preprocessor.joblib",
+      "sha256": "3587e533e54f37790d8dff4e2025c5bb88a2dc7e219834e20f36cc703456c546",
+      "matches_step13_record": true
+    },
+    {
+      "path": "models/final_feature_list.json",
+      "sha256": "d7a84483332627a01ef81c736ff3faf05d61ee099acaa259d1bf3402fbfb44d0",
+      "matches_step13_record": true
+    }
+  ],
+  "inference_contract": {
+    "feature_count": 102,
+    "feature_list": "models/final_feature_list.json (unchanged, 102 features)",
+    "status_enum": "OK / DEGRADED / INSUFFICIENT_DATA / OFFLINE"
+  },
+  "tests": {
+    "command": "python -m pytest -q",
+    "result": "280 passed",
+    "notes": "Full suite incl. simulator (28), live reader (14), API (23) and 4 new P5 realism regression tests."
+  },
+  "step16_validation": {
+    "file": "reports/step16_simulator_validation.json",
+    "predictions": "300/300 passed (50 scenarios x 6 checkpoints through the real /predict pipeline)",
+    "model_hash_unchanged": true,
+    "determinism": "same-seed within 1e-9 (ULP-level jitter from n_jobs=-1 parallel tree aggregation; physics deterministic)",
+    "nonpos_instants_kwh_le_0": 11,
+    "nonpos_share": 0.036667,
+    "http_subset_all_ok": true
+  },
+  "simulator_fixes_applied": {
+    "stuck_stop": "stop segments hold a 6 km/h creep floor instead of a full stop (brake-zone logic kept the vehicle at speed 0)",
+    "low_speed_regen": "regenerative braking fades to 0 below 8 km/h, full at 25 km/h (real EV low-speed regen fade)",
+    "route_end_guard": "route_terrain_input stays schema-valid (>= 2 points, SIMULATOR_ROUTE) at/near the end of a route",
+    "model_untouched": true
+  },
+  "cleanup": {
+    "removed": [
+      "src/inference/live_feature_builder.py (orphaned module, 0 references across source/tests/scripts; F8.4 decision)",
+      "probe_neg.py (temporary debug probe used during P5 diagnosis)"
+    ]
+  },
+  "new_modules_added": [
+    "src/simulator/ (config.py, physics.py, route.py, scenario.py, simulator.py)",
+    "src/telemetry/reader.py (TelemetryReader, LIVE sources only)",
+    "tests/test_simulator.py, tests/test_live_reader.py, tests/test_telemetry_recorder.py",
+    "scripts/step16_simulator_validation.py"
+  ],
+  "honesty_rules_verified": {
+    "simulated_data_labeled": "SIMULATOR / SIMULATOR_ROUTE throughout dashboard, API payloads, and validation",
+    "live_data_sources": "TelemetryReader exposes only real connected sources; live endpoints never fabricate telemetry or terrain",
+    "terrain_source_validator": "rejects FABRICATED / FAKE / SYNTHETIC_DEMO sources"
+  },
+  "status": "PASS - all frozen artifacts bit-identical to the Step 13 record; no training or evaluation performed in this batch; full test suite green; 300/300 validation predictions through the real frozen model."
+}

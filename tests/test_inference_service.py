@@ -157,6 +157,25 @@ def test_range_calculation_consistency(service):
     assert resp.expected_range_km <= resp.optimistic_range_km + 1e-6
 
 
+def test_range_band_produces_distinct_values(service):
+    """F8.1: the API must use the residual-quantile band, so conservative /
+    expected / optimistic ranges differ (not silently equal)."""
+    resp = service.predict(make_request())
+    assert resp.conservative_range_km < resp.expected_range_km
+    assert resp.expected_range_km < resp.optimistic_range_km
+
+
+def test_ood_detects_out_of_bounds_soc(service):
+    """F8.3: SOC/speed/altitude/temperature must actually be OOD-checked.
+
+    Pre-fix the raw telemetry keys never matched the boundary keys, so a
+    SOC of 95% produced no violation. Now it must be flagged.
+    """
+    from src.inference.service import assess_ood_from_request
+    res = assess_ood_from_request(make_request(telemetry=make_snapshot(soc_pct=95.0)))
+    assert any("current_soc_pct" in v for v in res["violations"])
+
+
 def test_range_estimator_unit():
     est = RangeEstimator(reserve_soc_pct=10.0)
     r = est.estimate_range(40.0, 80.0, 0.20)

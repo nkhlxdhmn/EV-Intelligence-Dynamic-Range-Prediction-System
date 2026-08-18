@@ -141,6 +141,33 @@ class TestRollingBuffer:
         assert latest is not None
         # The buffer should contain both entries
 
+    def test_out_of_order_insert_sorted_by_timestamp(self):
+        """Out-of-order inserts keep newest-by-time at get_latest() (F1.2)."""
+        buffer = RollingBuffer(max_samples=10)
+        buffer.insert(2000.0, {"val": "newer"})
+        buffer.insert(1000.0, {"val": "older"})
+        buffer.insert(1500.0, {"val": "middle"})
+
+        assert buffer.size() == 3
+        assert buffer.get_oldest()["val"] == "older"
+        assert buffer.get_latest()["val"] == "newer"
+
+        # get_recent returns newest-first ordering by timestamp
+        recent = buffer.get_recent(2)
+        assert recent[-1]["val"] == "newer"
+        assert recent[0]["val"] == "middle"
+
+    def test_eviction_after_out_of_order_insert(self):
+        """Eviction still bounds size after out-of-order inserts."""
+        buffer = RollingBuffer(max_samples=3)
+        buffer.insert(3000.0, {"val": "a"})
+        buffer.insert(1000.0, {"val": "b"})
+        buffer.insert(2000.0, {"val": "c"})
+        buffer.insert(2500.0, {"val": "d"})
+        assert buffer.size() == 3
+        # Newest by timestamp survives; oldest evicted
+        assert buffer.get_latest()["val"] == "a"
+
 
 class TestBufferUtilities:
     """Test buffer utility functions."""
