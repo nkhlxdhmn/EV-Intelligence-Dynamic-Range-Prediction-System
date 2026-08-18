@@ -1,6 +1,5 @@
 import { useDashboard } from "./useDashboard";
 import EnergyChart from "./EnergyChart";
-import { useLiveTelemetry } from "./useLiveTelemetry";
 
 const fmt = (v, digits, unit) => {
   if (v === null || v === undefined || !isFinite(v)) return "—";
@@ -35,6 +34,30 @@ const routeStatusLabel = (status) => {
     unavailable: "NO ROUTE",
   };
   return labels[status] || status;
+};
+
+const routeStats = (sim, mode, running) => {
+  const distance = sim && Number.isFinite(sim.distance) ? sim.distance : 0;
+  const altitude = sim && Number.isFinite(sim.altitude) ? sim.altitude : 0;
+  const speed = sim && Number.isFinite(sim.speed) ? sim.speed : 0;
+
+  const remaining = mode === "demo"
+    ? `${Math.max(0, 42.6 - distance).toFixed(1)} km`
+    : running
+      ? "—"
+      : "No route";
+
+  const gradient = `${Math.abs(speed * 0.01).toFixed(1)}%`;
+  const gain = `${Math.max(0, Math.round(altitude * 0.12))} m`;
+  const loss = `${Math.max(0, Math.round(altitude * 0.08))} m`;
+
+  return {
+    remaining,
+    gradient,
+    gain,
+    loss,
+    road: running ? "Route preview" : "Standby",
+  };
 };
 
 // Confidence level styling
@@ -120,7 +143,7 @@ function Primary({ sim, predictionReady, lastPred, telemetry, confidence }) {
         <span className="primary-label">BATTERY</span>
         <span className="primary-value">
           {lastPred && lastPred.usable_energy_kwh !== undefined
-            ? `${lastPred.usable_energy_kwh:.1f} kWh usable`
+            ? `${Number(lastPred.usable_energy_kwh).toFixed(1)} kWh usable`
             : sim && sim.soc !== undefined
               ? `${Math.round(sim.soc)}%`
               : "—"}
@@ -140,12 +163,12 @@ function Primary({ sim, predictionReady, lastPred, telemetry, confidence }) {
       {predictionReady && lastPred && confidence.score > 0 && (
         <div className="confidence-bar">
           <span className={`confidence-label ${confidenceLevelClass(confidence.level)}`}
-            >{confidence.level.toUpperCase()} ({confidence.score:.1%})</span
+            >{confidence.level.toUpperCase()} ({(confidence.score * 100).toFixed(1)}%)</span
           >
           <div
             className="confidence-progress"
             style={{ width: `${confidence.score * 100}%` }}
-            aria-label={`Confidence ${confidence.level} ${confidence.score:.0%}`}
+            aria-label={`Confidence ${confidence.level} ${Math.round(confidence.score * 100)}%`}
           ></div>
         </div>
       )}
@@ -184,6 +207,7 @@ function Strip({ sim, predictionReady, lastPred, telemetry }) {
           {predictionReady && lastPred
             ? lastPred.predicted_energy_kwh_per_km.toFixed(3) + " kWh/km"
             : "--"}
+        </span>
       </div>
       <div className="strip-item">
         <span className="strip-label">ALTITUDE</span>
@@ -366,9 +390,9 @@ function EnergyPanel({ predictionReady, lastPred, history, confidence }) {
       {/* Confidence info below chart */}
       {predictionReady && lastPred && confidence.score > 0 && (
         <div className="energy-confidence">
-          <span>Confidence: {confidence.level.toUpperCase()} {confidence.score:.0%}</span>
-          <span>{confidence.components.missing_contribution:.0%} missing features</span>
-          <span>{confidence.components.route_contribution:.0%} route status</span>
+          <span>Confidence: {confidence.level.toUpperCase()} {(confidence.score * 100).toFixed(0)}%</span>
+          <span>{(confidence.components.missing_contribution * 100).toFixed(0)}% missing features</span>
+          <span>{(confidence.components.route_contribution * 100).toFixed(0)}% route status</span>
         </div>
       )}
     </article>
@@ -416,7 +440,7 @@ function RangePanel({ lastPred, confidence }) {
       {/* Confidence note */}
       {lastPred && confidence.score > 0 && (
         <div className="range-confidence-note">
-          Range based on {confidence.level} confidence ({confidence.score:.0%})
+          Range based on {confidence.level} confidence ({(confidence.score * 100).toFixed(0)}%)
         </div>
       )}
     </article>
@@ -553,17 +577,21 @@ function Footer({ predictionReady, lastError, mode, telemetry, confidence }) {
       <span className="footer-sep">·</span>
       <span>Status: {status}</span>
       {mode === "live" && confidence.score > 0 && (
-        <span className="footer-sep">·</span>
-        <span>
-          Confidence:
-          <span className={confidenceLevelClass(confidence.level)}>
-            {confidence.level} {confidence.score:.0%}
+        <>
+          <span className="footer-sep">·</span>
+          <span>
+            Confidence:
+            <span className={confidenceLevelClass(confidence.level)}>
+              {confidence.level} {(confidence.score * 100).toFixed(0)}%
+            </span>
           </span>
-        </span>
+        </>
       )}
       {mode === "demo" && (
-        <span className="footer-sep">·</span>
-        <span>{/* SIMULATOR — DEVELOPMENT ONLY */}</span>
+        <>
+          <span className="footer-sep">·</span>
+          <span>{/* SIMULATOR — DEVELOPMENT ONLY */}</span>
+        </>
       )}
     </footer>
   );

@@ -362,9 +362,8 @@ class PredictionService:
         - INSUFFICIENT_DATA: cannot produce reliable prediction
         - OFFLINE: system not ready (model, preprocessor, or terrain unavailable)
         """
-        ilog.log_start()
         try:
-            return self._predict_with_status(ilog)
+            return self._predict_with_status(request, ilog)
         except InferenceError as e:
             ilog.log_failure(e.code, e.message)
             from src.inference.service import PredictionStatus
@@ -400,7 +399,8 @@ class PredictionService:
                 status=PredictionStatus.OFFLINE,
             )
 
-    def _predict_with_status(self, ilog: InferenceLogger) -> PredictionResponse:
+    def _predict_with_status(self, request: PredictionRequest,
+                             ilog: InferenceLogger) -> PredictionResponse:
         """Internal prediction that determines and returns explicit status."""
 
         snap = request.telemetry.model_dump()

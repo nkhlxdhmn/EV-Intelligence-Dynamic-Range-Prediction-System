@@ -145,3 +145,72 @@ def test_no_stack_trace_on_error(client):
     r = client.post("/predict", json=p)
     assert r.status_code == 422
     assert "Traceback" not in r.text
+
+
+# ---- STEP 15 live telemetry endpoints ---------------------------------------
+
+def test_live_status_offline(client):
+    """/live/status reports offline when no source is connected."""
+    client.post("/live/disconnect")
+    r = client.get("/live/status")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "offline"
+    assert body["telemetry_connected"] is False
+
+
+def test_live_connect_unknown_provider(client):
+    """Unknown provider returns HTTP 400 (not 200)."""
+    r = client.post("/live/connect", params={"provider": "bogus"})
+    assert r.status_code == 400
+    assert "Unknown telemetry provider" in r.json()["detail"]
+
+
+def test_live_connect_then_disconnect(client):
+    """Connect to a valid provider then disconnect."""
+    r = client.post("/live/connect", params={"provider": "can"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] in ("connected", "connection_failed")
+    assert body["provider"] == "can"
+
+    r = client.post("/live/disconnect")
+    assert r.status_code == 200
+    assert r.json()["status"] == "disconnected"
+
+    r = client.get("/live/status")
+    assert r.json()["status"] == "offline"
+
+
+def test_live_telemetry_returns_bounded_info(client):
+    """/live/telemetry returns signal info without raw values."""
+    r = client.get("/live/telemetry")
+    assert r.status_code == 200
+    body = r.json()
+    assert "signals" in body
+    assert "count" in body
+
+
+def test_live_connect_disconnect_concurrent(client):
+    """Concurrent connect/disconnect must not raise and must end consistent."""
+    import asyncio
+
+    async def hammer():
+        loop = asyncio.get_event_loop()
+        results = await asyncio.gather(
+            loop.run_in_executor(
+                None, lambda: client.post(
+                    "/live/connect", params={"provider": "can"})),
+            loop.run_in_executor(
+                None, lambda: client.post("/live/disconnect")),
+            loop.run_in_executor(
+                None, lambda: client.get("/live/status")),
+            return_exceptions=True,
+        )
+        for res in results:
+            assert not isinstance(res, Exception), f"unexpected: {res!r}"
+
+    asyncio.run(hammer())
+
+    r = client.get("/live/status")
+    assert r.status_code == 200

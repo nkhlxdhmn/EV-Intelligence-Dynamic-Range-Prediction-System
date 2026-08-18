@@ -25,7 +25,7 @@ from __future__ import annotations
 
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
-from src.telemetry.base import TelemetrySignal, SignalStatus
+from src.telemetry.base import TelemetrySignal, SignalStatus, TelemetrySource
 
 
 # ---------------------------------------------------------------------------
@@ -63,7 +63,9 @@ class CANAdapter(TelemetrySource):
     conversion to extract numeric values from raw CAN data.
     """
 
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: Optional[Dict[str, Any]] = None,
+                 *, interface: str = "can0", bitrate: int = 500,
+                 default_signal_config: Optional[Dict[str, Any]] = None):
         """Initialize the CAN adapter.
 
         Parameters
@@ -73,15 +75,26 @@ class CANAdapter(TelemetrySource):
             - interface: str (e.g. "can0", "ttyUSB0")
             - bitrate: int
             - default_signal_config: CANSignalConfig for default decoding
+        interface : str, optional
+            CAN interface name (used when ``config`` is not provided).
+        bitrate : int, optional
+            CAN bus bitrate in kbit/s (used when ``config`` is not provided).
+        default_signal_config : dict, optional
+            Default signal config as a dict (used when ``config`` is not
+            provided).
         """
-        self._interface: str = config.get("interface", "can0") if config else "can0"
-        self._bitrate: int = config.get("bitrate", 500) if config else 500
+        merged: Dict[str, Any] = dict(config) if config else {}
+        merged.setdefault("interface", interface)
+        merged.setdefault("bitrate", bitrate)
+        if default_signal_config is not None:
+            merged.setdefault("default_signal_config", default_signal_config)
+        self._interface: str = merged.get("interface", "can0")
+        self._bitrate: int = merged.get("bitrate", 500)
         self._connected: bool = False
         # Default signal config — can be overridden per-signal
         self._default_config: Optional[CANSignalConfig] = None
-        if config and "default_signal_config" in config:
-            from src.telemetry.can_adapter import CANSignalConfig as _CC
-            self._default_config = CANSignalConfig(**config["default_signal_config"])
+        if "default_signal_config" in merged:
+            self._default_config = CANSignalConfig(**merged["default_signal_config"])
 
     # ------------------------------------------------------------------
     # Abstract method implementations from TelemetrySource

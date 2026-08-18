@@ -41,6 +41,7 @@ class TelemetrySignal:
     quality: str = "VALID"  # alias for status; maintained for compatibility
     age_ms: int = 0
     source: str = ""
+    provenance: Optional[Dict[str, Any]] = None  # source-specific metadata
 
 
 # ---------------------------------------------------------------------------

@@ -171,7 +171,7 @@ class TestCANAdapter:
         raw_data = struct.pack("<H", 80)
         result = adapter.decode_signal(raw_data, cfg)
         assert result is not None
-        assert result.quality.name == "VALID"
+        assert result.quality == "VALID"
 
         # Invalid value: 1200 * 0.25 = 300.0 km/h (at max boundary)
         # Actually 301 * 0.25 = 75.25 would be over max... let's test properly
@@ -180,4 +180,4 @@ class TestCANAdapter:
         result_over = adapter.decode_signal(raw_data_over, cfg)
         # Should be out of range
         assert result_over is not None
-        assert result_over.quality.name in ["OUT_OF_RANGE", "INVALID"]
+        assert result_over.quality in ["OUT_OF_RANGE", "INVALID"]

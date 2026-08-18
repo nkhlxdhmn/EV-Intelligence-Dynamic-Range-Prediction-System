@@ -154,64 +154,6 @@ export function useDashboard() {
   }, [mode]);
 
   // -------------------------------------------------------------------------
-  // Start/pause/reset functions
-  // -------------------------------------------------------------------------
-
-  const start = useCallback(() => {
-    setRunning((runningNow) => {
-      if (runningNow) return runningNow;
-      if (mode === "live") {
-        // In live mode, start telemetry polling
-        startLiveTelemetryPolling();
-      }
-      sendPrediction();
-      timerRef.current = setInterval(sendPrediction, pollMs);
-      return true;
-    });
-  }, [mode, pollMs, sendPrediction]);
-
-  const pause = useCallback(() => {
-    clearInterval(timerRef.current);
-    timerRef.current = null;
-    setRunning(false);
-  }, []);
-
-  const reset = useCallback(() => {
-    pause();
-    // Reset dashboard state
-    setTelemetry({
-      signals: [],
-      status: TelemetryStatus.OFFLINE,
-      quality: QualityState.UNAVAILABLE,
-      age_ms: 0,
-      source: "none",
-    });
-    setRouteStatus({
-      available: false,
-      terrain_features_available: false,
-      status: "unavailable",
-    });
-    setConfidence({
-      score: 0,
-      level: "high",
-      components: {
-        ood_contribution: 0,
-        missing_contribution: 0,
-        route_contribution: 0,
-        width_contribution: 0,
-      },
-    });
-    setSensorQuality({
-      overall_rating: "unknown",
-      details: {},
-    });
-    setHistory([]);
-    setLastPred(null);
-    setLastError(null);
-    render();
-  }, []);
-
-  // -------------------------------------------------------------------------
   // Live telemetry polling
   // -------------------------------------------------------------------------
 
@@ -487,6 +429,64 @@ export function useDashboard() {
       }
     }
   }, [mode, pollMs, buildPayload]);
+
+  // -------------------------------------------------------------------------
+  // Start/pause/reset functions
+  // -------------------------------------------------------------------------
+
+  const start = useCallback(() => {
+    setRunning((runningNow) => {
+      if (runningNow) return runningNow;
+      if (mode === "live") {
+        // In live mode, start telemetry polling
+        startLiveTelemetryPolling();
+      }
+      sendPrediction();
+      timerRef.current = setInterval(sendPrediction, pollMs);
+      return true;
+    });
+  }, [mode, pollMs, sendPrediction, startLiveTelemetryPolling]);
+
+  const pause = useCallback(() => {
+    clearInterval(timerRef.current);
+    timerRef.current = null;
+    setRunning(false);
+  }, []);
+
+  const reset = useCallback(() => {
+    pause();
+    // Reset dashboard state
+    setTelemetry({
+      signals: [],
+      status: TelemetryStatus.OFFLINE,
+      quality: QualityState.UNAVAILABLE,
+      age_ms: 0,
+      source: "none",
+    });
+    setRouteStatus({
+      available: false,
+      terrain_features_available: false,
+      status: "unavailable",
+    });
+    setConfidence({
+      score: 0,
+      level: "high",
+      components: {
+        ood_contribution: 0,
+        missing_contribution: 0,
+        route_contribution: 0,
+        width_contribution: 0,
+      },
+    });
+    setSensorQuality({
+      overall_rating: "unknown",
+      details: {},
+    });
+    setHistory([]);
+    setLastPred(null);
+    setLastError(null);
+    render();
+  }, [pause, render]);
 
   // -------------------------------------------------------------------------
   // Effect: initialize on mount

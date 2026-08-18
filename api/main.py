@@ -19,10 +19,12 @@ To start:  uvicorn api.main:app --host 0.0.0.0 --port 8000
 """
 from __future__ import annotations
 
+import asyncio
+import math
 import os
 import sys
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 # allow running from project root without install
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -30,6 +32,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.inference.feature_builder import SyntheticRouteTerrainProvider
 from src.inference.inference_logger import InferenceLogger, make_request_id
@@ -52,11 +55,32 @@ from src.telemetry.quality import assess_signal_quality, quality_summary
 # --------------------------------------------------------------------------
 DEMO_TERRAIN = os.getenv("EV_DEMO_TERRAIN", "0") == "1"
 
+# Maximum accepted request body size (payload size limit, see docstring).
+MAX_BODY_BYTES = 1_000_000  # 1 MB
+
+
+class MaxBodySizeMiddleware(BaseHTTPMiddleware):
+    """Reject request bodies larger than MAX_BODY_BYTES with HTTP 413."""
+
+    async def dispatch(self, request: Request, call_next):
+        content_length = request.headers.get("content-length")
+        if content_length and int(content_length) > MAX_BODY_BYTES:
+            return JSONResponse(status_code=413,
+                                content={"detail": "payload too large"})
+        return await call_next(request)
+
 
 class AppState:
-    """Holds the loaded PredictionService (loaded once at startup)."""
+    """Shared application state (service + live telemetry, lock-guarded).
+
+    ``telemetry_lock`` guards the telemetry connection/buffer so concurrent
+    connect/disconnect/read operations do not race.
+    """
 
     service: Optional[PredictionService] = None
+    telemetry_source: Optional["TelemetrySource"] = None
+    telemetry_buffer = None  # RollingBuffer initialized on first read
+    telemetry_lock: asyncio.Lock = asyncio.Lock()
 
 
 app = FastAPI(
@@ -71,6 +95,8 @@ app = FastAPI(
     ),
     version=MODEL_VERSION,
 )
+
+app.add_middleware(MaxBodySizeMiddleware)
 
 
 @app.on_event("startup")
@@ -122,128 +148,111 @@ def _unhandled(_: Request, exc: Exception) -> JSONResponse:
 # Live telemetry endpoints (STEP 15)
 # ---------------------------------------------------------------------------
 
-# Global telemetry state (in-production would be per-connection or
-# session-scoped; here we use a singleton for prototype simplicity)
-_telemetry_source: Optional[TelemetrySource] = None
-_telemetry_buffer = None  # RollingBuffer initialized on first read
+# Telemetry state lives on AppState (lock-guarded); see class AppState above.
 
 
-def _get_telemetry_buffer() -> "RollingBuffer":
-    """Get or create the global telemetry buffer."""
-    global _telemetry_buffer
-    if _telemetry_buffer is None:
+def _is_valid_signal(v) -> bool:
+    """True when a value is a non-None finite number (not NaN)."""
+    return v is not None and isinstance(v, (int, float)) and not math.isnan(v)
+
+
+def _get_telemetry_buffer():
+    """Get or create the telemetry buffer (lock held by caller)."""
+    if AppState.telemetry_buffer is None:
         from src.telemetry.buffer import RollingBuffer
-        _telemetry_buffer = RollingBuffer(max_samples=1000)
-    return _telemetry_buffer
+        AppState.telemetry_buffer = RollingBuffer(max_samples=1000)
+    return AppState.telemetry_buffer
 
 
 # ---- Live status ------------------------------------------------------------
 
 @app.get("/live/status", response_model=dict[str, Any])
-def live_status() -> dict[str, Any]:
+async def live_status() -> dict[str, Any]:
     """Return the live telemetry connection and system status."""
-    global _telemetry_source
+    async with AppState.telemetry_lock:
+        buffer = _get_telemetry_buffer()
+        recent_signals = buffer.get_latest()
+        source = AppState.telemetry_source
 
-    buffer = _get_telemetry_buffer()
-    recent_signals = buffer.get_latest()
-
-    # Determine overall telemetry status
-    if _telemetry_source is None:
-        connected = False
-        status = "offline"
-        available_signals = []
-        buffer_size = 0
-    else:
-        connected = _telemetry_source.health().get("connected", False)
-        available_signals = _telemetry_source.available_signals()
-        buffer_size = buffer.size()
-        # Simple status logic: if we have recent VALID signals, OK;
-        # if we have STALE/Missing, degraded; otherwise offline.
-        if recent_signals is not None:
-            for v in recent_signals.values():
-                if v is not None and v != float("nan"):
-                    status = "ok"
-                    break
-            else:
-                # Check buffer for any signals
-                if buffer_size > 0:
-                    status = "degraded"
-                else:
-                    status = "offline"
-        else:
+        # Determine overall telemetry status
+        if source is None:
+            connected = False
             status = "offline"
+            available_signals = []
+            buffer_size = 0
+        else:
+            connected = source.health().get("connected", False)
+            available_signals = source.available_signals()
+            buffer_size = buffer.size()
+            # Simple status logic: if we have recent VALID signals, OK;
+            # if we have STALE/Missing, degraded; otherwise offline.
+            if recent_signals and any(_is_valid_signal(v)
+                                      for v in recent_signals.values()):
+                status = "ok"
+            elif buffer_size > 0:
+                status = "degraded"
+            else:
+                status = "offline"
 
-    return {
-        "telemetry_connected": connected,
-        "status": status,
-        "available_signals": available_signals,
-        "buffer_size": buffer_size,
-        "buffer_capacity": buffer.capacity(),
-        "mode": "ROUTE_AWARE" if connected and _is_route_available() else "STRICT_ONBOARD",
-    }
+        return {
+            "telemetry_connected": connected,
+            "status": status,
+            "available_signals": available_signals,
+            "buffer_size": buffer_size,
+            "buffer_capacity": buffer.capacity(),
+            "mode": "ROUTE_AWARE" if connected and _is_route_available()
+                    else "STRICT_ONBOARD",
+        }
 
 
 def _is_route_available() -> bool:
-    """Check if route terrain is available for route-aware prediction."""
-    # In production, would check the terrain provider/status
-    # For now, return True if we have a prediction service with terrain
-    try:
-        from src.inference.service import PredictionService
-        # Check if the service has terrain provider configured
-        return True  # simplified
-    except Exception:
-        return False
+    """Check if the running service has a terrain provider configured."""
+    svc = AppState.service
+    return svc is not None and getattr(svc, "terrain_provider", None) is not None
 
 
 # ---- Live telemetry ---------------------------------------------------------
 
 @app.get("/live/telemetry", response_model=dict[str, Any])
-def live_telemetry() -> dict[str, Any]:
+async def live_telemetry() -> dict[str, Any]:
     """Return the latest normalized telemetry signals."""
-    global _telemetry_source, _telemetry_buffer
+    async with AppState.telemetry_lock:
+        buffer = _get_telemetry_buffer()
+        source = AppState.telemetry_source
 
-    buffer = _get_telemetry_buffer()
+        # Get latest sample
+        latest = buffer.get_latest()
 
-    # Get latest sample
-    latest = buffer.get_latest()
+        if latest is None:
+            return {
+                "signals": [],
+                "count": 0,
+                "message": "No telemetry data available",
+            }
 
-    if latest is None:
+        # Convert to signal info (without exposing raw values that could be
+        # sensitive; only show names, quality, and staleness info)
+        signal_infos: list[dict[str, Any]] = []
+        for name, value in latest.items():
+            is_valid = _is_valid_signal(value)
+            signal_infos.append({
+                "name": name,
+                "has_value": is_valid,
+                "quality": "VALID" if is_valid else "MISSING",
+            })
+
         return {
-            "signals": [],
-            "count": 0,
-            "message": "No telemetry data available",
+            "signals": signal_infos,
+            "count": len(signal_infos),
+            "source": source.health().get("provider", "none") if source else "none",
         }
-
-    # Convert to signal info (without exposing raw values that could be
-    # sensitive; only show names, quality, and staleness info)
-    signal_infos: list[dict[str, Any]] = []
-    for name, value in latest.items():
-        # Determine quality based on value presence
-        if value is None or value != value:  # None or NaN
-            quality = "MISSING"
-        elif value == float("nan"):
-            quality = "MISSING"
-        else:
-            quality = "VALID"
-
-        signal_infos.append({
-            "name": name,
-            "has_value": value is not None and value == value and value != float("nan"),
-            "quality": quality,
-        })
-
-    return {
-        "signals": signal_infos,
-        "count": len(signal_infos),
-        "source": _telemetry_source.health().get("provider", "none") if _telemetry_source else "none",
-    }
 
 
 # ---- Live connect -----------------------------------------------------------
 
 @app.post("/live/connect")
-def live_connect(provider: str = "obd_ii", format_type: str = "json",
-                 config: Optional[dict] = None) -> dict[str, Any]:
+async def live_connect(provider: str = "obd_ii", format_type: str = "json",
+                       config: Optional[dict] = None) -> dict[str, Any]:
     """Connect to a telemetry provider.
 
     Parameters
@@ -255,52 +264,49 @@ def live_connect(provider: str = "obd_ii", format_type: str = "json",
     config : dict, optional
         Provider-specific configuration for signal mapping, etc.
     """
-    global _telemetry_source
-
     from src.telemetry.obd_adapter import OBDAdapter
     from src.telemetry.can_adapter import CANAdapter
     from src.telemetry.telematics_adapter import TelematicsAdapter
 
     # Create the appropriate adapter based on provider type
     if provider == "obd_ii":
-        _telemetry_source = OBDAdapter()
+        adapter = OBDAdapter()
     elif provider == "can":
-        _telemetry_source = CANAdapter(config=config)
+        adapter = CANAdapter(config=config)
     elif provider == "telematics":
-        _telemetry_source = TelematicsAdapter(provider=provider,
-                                              format_type=format_type,
-                                              config=config)
+        adapter = TelematicsAdapter(provider=provider,
+                                    format_type=format_type,
+                                    config=config)
     else:
-        return {
-            "status": "error",
-            "message": f"Unknown telemetry provider: {provider}",
-        }
+        raise HTTPException(status_code=400,
+                            detail=f"Unknown telemetry provider: {provider}")
 
-    # Attempt connection
+    # Attempt connection (under lock so connect/disconnect do not race)
     try:
-        connected = _telemetry_source.connect()
+        async with AppState.telemetry_lock:
+            connected = adapter.connect()
+            AppState.telemetry_source = adapter
     except Exception as e:
-        return {
-            "status": "error",
-            "message": f"Failed to connect: {str(e)}",
-        }
+        raise HTTPException(status_code=502,
+                            detail=f"Failed to connect to {provider}: {str(e)[:200]}")
 
     # Read initial signals
-    initial_signals = _telemetry_source.read() if connected else None
+    initial_signals = adapter.read() if connected else None
 
     # Insert into buffer if we have data
-    buffer = _get_telemetry_buffer()
-    if initial_signals is not None:
-        # Extract timestamps and normalize
-        import time
-        timestamp = time.time()
-        buffer.insert(timestamp, {sig.name: sig.value for sig in initial_signals})
+    async with AppState.telemetry_lock:
+        buffer = _get_telemetry_buffer()
+        if initial_signals is not None:
+            # Extract timestamps and normalize
+            import time
+            timestamp = time.time()
+            buffer.insert(timestamp, {sig.name: sig.value for sig in initial_signals})
 
     return {
         "status": "connected" if connected else "connection_failed",
         "provider": provider,
         "format_type": format_type,
-        "available_signals": _telemetry_source.available_signals() if _telemetry_source else [],
+        "available_signals": adapter.available_signals() if adapter else [],
         "message": "Telemetry connection established" if connected else "Connection failed",
     }
 
@@ -308,15 +314,13 @@ def live_connect(provider: str = "obd_ii", format_type: str = "json",
 # ---- Live disconnect ---------------------------------------------------------
 
 @app.post("/live/disconnect")
-def live_disconnect() -> dict[str, Any]:
+async def live_disconnect() -> dict[str, Any]:
     """Disconnect the current telemetry source."""
-    global _telemetry_source, _telemetry_buffer
-
-    if _telemetry_source is not None:
-        _telemetry_source.disconnect()
-        _telemetry_source = None
-
-    _telemetry_buffer = None
+    async with AppState.telemetry_lock:
+        if AppState.telemetry_source is not None:
+            AppState.telemetry_source.disconnect()
+            AppState.telemetry_source = None
+        AppState.telemetry_buffer = None
 
     return {
         "status": "disconnected",

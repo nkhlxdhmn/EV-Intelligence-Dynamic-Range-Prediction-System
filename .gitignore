@@ -40,7 +40,7 @@ dashboard/node_modules/
 dashboard/dist/
 
 # Generated intermediate and processed data
-data/
+/data/
 
 # Jupyter
 .ipynb_checkpoints/
