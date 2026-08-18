@@ -19,7 +19,16 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 LOG_DIR = PROJECT_ROOT / "logs"
-LOG_DIR.mkdir(exist_ok=True)
+# Logging must never take the service down: if the logs dir cannot be created
+# or written (read-only container filesystem, missing permissions), fall back
+# to console-only logging instead of raising at import time.
+try:
+    LOG_DIR.mkdir(exist_ok=True)
+    _LOG_FILE = LOG_DIR / "inference.log"
+    with open(_LOG_FILE, "a", encoding="utf-8"):
+        pass
+except OSError:
+    _LOG_FILE = None
 
 _configured = False
 
@@ -42,10 +51,12 @@ def get_logger(name: str = "ev.inference", log_file: Path | None = None,
     ch.setFormatter(fmt)
     logger.addHandler(ch)
 
-    fh = logging.FileHandler(log_file or (LOG_DIR / "inference.log"),
-                             encoding="utf-8")
-    fh.setFormatter(fmt)
-    logger.addHandler(fh)
+    # File logging only when a writable log file is available; otherwise the
+    # service logs to stdout/stderr only (never crashes on a read-only FS).
+    if log_file is not None or _LOG_FILE is not None:
+        fh = logging.FileHandler(log_file or _LOG_FILE, encoding="utf-8")
+        fh.setFormatter(fmt)
+        logger.addHandler(fh)
     logger.propagate = False
     _configured = True
     return logger
