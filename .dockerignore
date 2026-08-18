@@ -1,0 +1,27 @@
+# Git / VCS
+.git/
+.gitignore
+
+# Build context bloat — never copy host node_modules / build output into the
+# image; the Dockerfile installs and builds inside the container.
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.smoke-out/
+node_modules/
+
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+logs/
+
+# Local data — not shipped (frozen model artifacts in models/ are the only
+# runtime inputs)
+data/
+dataset/
+
+# Dev / tooling clutter
+.vscode/
+.idea/
+*.ipynb
+*.pyc

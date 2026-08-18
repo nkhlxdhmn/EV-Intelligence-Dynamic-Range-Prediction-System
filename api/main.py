@@ -35,6 +35,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.cors import CORSMiddleware
 
 from src.inference.feature_builder import SyntheticRouteTerrainProvider
 from src.inference.inference_logger import InferenceLogger, make_request_id
@@ -125,6 +126,17 @@ app = FastAPI(
         "claimed."
     ),
     version=MODEL_VERSION,
+)
+
+# CORS: allows the dashboard hosted on a different origin (e.g. Vercel) to call
+# the API. Defaults to allow-all for this public read-only inference endpoint;
+# restrict with EV_CORS_ORIGINS="https://app.example.com,https://sub.example.com".
+_EV_CORS_ORIGINS = os.getenv("EV_CORS_ORIGINS", "*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _EV_CORS_ORIGINS.split(",") if o.strip()],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.add_middleware(MaxBodySizeMiddleware)

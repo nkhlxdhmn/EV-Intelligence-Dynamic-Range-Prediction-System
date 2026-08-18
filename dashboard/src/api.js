@@ -1,16 +1,21 @@
 // EV RANGE MONITOR - API client. No model logic; only talks to the backend.
 
+// API base for cross-origin deployments (e.g. a Vercel-hosted frontend calling
+// a Docker-hosted backend). When unset, all calls are same-origin relative
+// paths (local dev proxy / Docker single-container) and behavior is unchanged.
+const API_BASE = (import.meta.env && import.meta.env.VITE_API_BASE) || "";
+
 export const API = {
-  health: "/health",
-  info: "/model/info",
-  predict: "/predict",
+  health: `${API_BASE}/health`,
+  info: `${API_BASE}/model/info`,
+  predict: `${API_BASE}/predict`,
   // Backend physics simulator (STEP 16) — drives demo mode.
-  simulatorReset: "/simulator/reset",
-  simulatorStep: "/simulator/step",
+  simulatorReset: `${API_BASE}/simulator/reset`,
+  simulatorStep: `${API_BASE}/simulator/step`,
   // Live telemetry endpoints (STEP 15)
-  liveStatus: "/live/status",
-  liveTelemetry: "/live/telemetry",
-  livePrediction: "/live/prediction",
+  liveStatus: `${API_BASE}/live/status`,
+  liveTelemetry: `${API_BASE}/live/telemetry`,
+  livePrediction: `${API_BASE}/live/prediction`,
 };
 
 export async function fetchHealth() {
